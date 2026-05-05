@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Druckjob anlegen</h1>
+        <p class="muted">Erstelle einen konkreten Druckauftrag für die Werkstatt.</p>
+    </div>
+</div>
+
+{% if projects %}
+<div class="form-card">
+    <form method="post" action="/jobs/new">
+        <div class="form-group">
+            <label for="project_id">Projekt *</label>
+            <select id="project_id" name="project_id" required>
+                <option value="">Bitte wählen</option>
+                {% for project in projects %}
+                <option value="{{ project.id }}"
+                    {% if selected_project and selected_project.id == project.id %}selected{% endif %}>
+                    {{ project.customer.name }} — {{ project.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <p class="muted small">
+                Tipp: Am besten Druckjobs direkt aus der Projektseite erstellen.
+            </p>
+        </div>
+
+        <div class="form-group">
+            <label for="file_id">Datei</label>
+            <select id="file_id" name="file_id">
+                <option value="0">Keine Datei auswählen</option>
+
+                {% if project_files %}
+                    {% for file in project_files %}
+                    <option value="{{ file.id }}"
+                        {% if selected_file and selected_file.id == file.id %}selected{% endif %}>
+                        {{ file.original_filename }}{% if file.version %} — {{ file.version }}{% endif %}
+                    </option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+            <p class="muted small">
+                Wenn hier keine Datei angezeigt wird, lege den Druckjob über die Projektseite an.
+            </p>
+        </div>
+
+        <div class="form-group">
+            <label for="printer_name">Drucker</label>
+            <select id="printer_name" name="printer_name">
+                <option value="">Bitte wählen</option>
+                {% for printer in printer_presets %}
+                <option value="{{ printer }}">{{ printer }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="material">Material</label>
+            <select id="material" name="material">
+                {% for material in material_presets %}
+                <option value="{{ material }}" {% if material == "PLA+" %}selected{% endif %}>
+                    {{ material }}
+                </option>
+                {% endfor %}
+            </select>
+            <p class="muted small">
+                Aktuell ist PLA+ als Standardmaterial hinterlegt.
+            </p>
+        </div>
+
+        <div class="form-group">
+            <label for="color">Farbe</label>
+            <input type="text" id="color" name="color" placeholder="z. B. Schwarz, Weiß, Blau, Rot">
+        </div>
+
+        <div class="form-group">
+            <label for="planned_print_time">Geplante Druckzeit</label>
+            <input type="text" id="planned_print_time" name="planned_print_time" placeholder="z. B. 4h 32min">
+        </div>
+
+        <div class="form-group">
+            <label for="planned_weight_grams">Geplantes Filamentgewicht in Gramm</label>
+            <input type="number" id="planned_weight_grams" name="planned_weight_grams" min="0" step="1" placeholder="z. B. 124">
+        </div>
+
+        <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                {% for status in statuses %}
+                <option value="{{ status }}" {% if status == "Bereit zum Druck" %}selected{% endif %}>
+                    {{ status }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notizen</label>
+            <textarea id="notes" name="notes" rows="5" placeholder="z. B. 0,2 mm Layerhöhe, 20 % Infill, kein Support"></textarea>
+        </div>
+
+        <div class="form-actions">
+            {% if selected_project %}
+                <a class="btn-secondary" href="/projects/{{ selected_project.id }}">Abbrechen</a>
+            {% else %}
+                <a class="btn-secondary" href="/jobs">Abbrechen</a>
+            {% endif %}
+            <button class="btn" type="submit">Druckjob speichern</button>
+        </div>
+    </form>
+</div>
+{% else %}
+<div class="empty-state">
+    <h2>Du brauchst zuerst ein Projekt</h2>
+    <p>Bevor du einen Druckjob anlegen kannst, muss mindestens ein Projekt existieren.</p>
+    <a class="btn" href="/projects/new">Projekt anlegen</a>
+</div>
+{% endif %}
+{% endblock %}

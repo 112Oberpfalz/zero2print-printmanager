@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Projekt anlegen</h1>
+        <p class="muted">Erstelle ein neues Projekt und ordne es einem Kunden zu.</p>
+    </div>
+</div>
+
+{% if customers %}
+<div class="form-card">
+    <form method="post" action="/projects/new">
+        <div class="form-group">
+            <label for="customer_id">Kunde *</label>
+            <select id="customer_id" name="customer_id" required>
+                <option value="">Bitte wählen</option>
+                {% for customer in customers %}
+                <option value="{{ customer.id }}"
+                    {% if selected_customer and selected_customer.id == customer.id %}selected{% endif %}>
+                    {{ customer.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="name">Projektname *</label>
+            <input type="text" id="name" name="name" required autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Beschreibung</label>
+            <textarea id="description" name="description" rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <option value="Anfrage">Anfrage</option>
+                <option value="Datei prüfen">Datei prüfen</option>
+                <option value="Bereit zum Druck">Bereit zum Druck</option>
+                <option value="Druck läuft">Druck läuft</option>
+                <option value="Nacharbeit">Nacharbeit</option>
+                <option value="Fertig">Fertig</option>
+                <option value="Archiviert">Archiviert</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="deadline">Deadline</label>
+            <input type="date" id="deadline" name="deadline">
+        </div>
+
+        <div class="form-group">
+            <label for="note">Notiz</label>
+            <textarea id="note" name="note" rows="4"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a class="btn-secondary" href="/projects">Abbrechen</a>
+            <button class="btn" type="submit">Projekt speichern</button>
+        </div>
+    </form>
+</div>
+{% else %}
+<div class="empty-state">
+    <h2>Du brauchst zuerst einen Kunden</h2>
+    <p>Bevor du ein Projekt anlegen kannst, muss mindestens ein Kunde existieren.</p>
+    <a class="btn" href="/customers/new">Kunde anlegen</a>
+</div>
+{% endif %}
+{% endblock %}

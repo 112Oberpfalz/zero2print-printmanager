@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Datei hochladen</h1>
+        <p class="muted">
+            Projekt:
+            <a class="link-btn" href="/projects/{{ project.id }}">
+                {{ project.name }}
+            </a>
+        </p>
+    </div>
+</div>
+
+<div class="form-card">
+    <form method="post" action="/projects/{{ project.id }}/files/upload" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="upload">Datei *</label>
+            <input type="file" id="upload" name="upload" required>
+            <p class="muted small">
+                Erlaubt: STL, 3MF, GCODE, STEP, STP, F3D, ZIP, PDF, JPG, PNG
+            </p>
+        </div>
+
+        <div class="form-group">
+            <label for="version">Version</label>
+            <input type="text" id="version" name="version" placeholder="z. B. v1, v2, final">
+        </div>
+
+        <div class="form-group">
+            <label for="note">Notiz</label>
+            <textarea id="note" name="note" rows="5" placeholder="z. B. finaler Slicer-Export, 0.2 mm Layerhöhe, 20 % Infill"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a class="btn-secondary" href="/projects/{{ project.id }}">Abbrechen</a>
+            <button class="btn" type="submit">Datei hochladen</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Druckjobs</h1>
+        <p class="muted">Alle geplanten, laufenden und fertigen Druckjobs.</p>
+    </div>
+
+    <a class="btn" href="/jobs/new">+ Druckjob anlegen</a>
+</div>
+
+<div class="filter-card">
+    <form method="get" action="/jobs" class="filter-form">
+        <div class="filter-field">
+            <label for="q">Suche</label>
+            <input type="text" id="q" name="q" value="{{ q or '' }}" placeholder="Kunde, Projekt, Datei, Material, Drucker">
+        </div>
+
+        <div class="filter-field">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <option value="">Alle Status</option>
+                {% for status in statuses %}
+                <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>
+                    {{ status }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-actions">
+            <button class="btn" type="submit">Filtern</button>
+            <a class="btn-secondary" href="/jobs">Zurücksetzen</a>
+        </div>
+    </form>
+</div>
+
+{% if jobs %}
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Job</th>
+                <th>Kunde</th>
+                <th>Projekt</th>
+                <th>Datei</th>
+                <th>Drucker</th>
+                <th>Material</th>
+                <th>Status</th>
+                <th>Erstellt</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td><strong>DJ-{{ "%04d"|format(job.id) }}</strong></td>
+                <td>
+                    <a class="link-btn" href="/customers/{{ job.project.customer.id }}">
+                        {{ job.project.customer.name }}
+                    </a>
+                </td>
+                <td>
+                    <a class="link-btn" href="/projects/{{ job.project.id }}">
+                        {{ job.project.name }}
+                    </a>
+                </td>
+                <td>
+                    {% if job.file %}
+                        {{ job.file.original_filename }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ job.printer_name or "-" }}</td>
+                <td>{{ job.material or "-" }}</td>
+                <td>
+                    <span class="status-pill {{ status_class(job.status) }}">
+                        {{ job.status }}
+                    </span>
+                </td>
+                <td>{{ job.created_at.strftime("%d.%m.%Y") }}</td>
+                <td>
+                    <a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <h2>Keine Druckjobs gefunden</h2>
+    <p>Erstelle einen Druckjob oder ändere deine Filter.</p>
+    <a class="btn" href="/jobs/new">Druckjob anlegen</a>
+</div>
+{% endif %}
+{% endblock %}

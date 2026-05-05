@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>DJ-{{ "%04d"|format(job.id) }}</h1>
+        <p class="muted">
+            Druckjob für
+            <a class="link-btn" href="/projects/{{ job.project.id }}">{{ job.project.name }}</a>
+            —
+            <a class="link-btn" href="/customers/{{ job.project.customer.id }}">{{ job.project.customer.name }}</a>
+        </p>
+    </div>
+
+    <div class="header-actions">
+        <a class="btn-secondary" href="/jobs">Alle Druckjobs</a>
+        <a class="btn-secondary" href="/projects/{{ job.project.id }}">Zum Projekt</a>
+        <a class="btn-secondary" href="/jobs/{{ job.id }}/edit">Bearbeiten</a>
+        <a class="btn-secondary" href="/time/new?project_id={{ job.project.id }}&job_id={{ job.id }}">Zeit erfassen</a>
+
+        <form method="post" action="/jobs/{{ job.id }}/done" onsubmit="return confirm('Druckjob als erledigt markieren?');">
+            <button class="btn-secondary" type="submit">Erledigt</button>
+        </form>
+
+        <a class="btn" href="/jobs/{{ job.id }}/pdf" target="_blank">PDF drucken</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="page-card">
+        <h2>Druckjob</h2>
+
+        <div class="detail-row">
+            <span>Job-Nr.</span>
+            <strong>DJ-{{ "%04d"|format(job.id) }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Kunde</span>
+            <strong>
+                <a class="link-btn" href="/customers/{{ job.project.customer.id }}">
+                    {{ job.project.customer.name }}
+                </a>
+            </strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Projekt</span>
+            <strong>
+                <a class="link-btn" href="/projects/{{ job.project.id }}">
+                    {{ job.project.name }}
+                </a>
+            </strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Datei</span>
+            <strong>
+                {% if job.file %}
+                    {{ job.file.original_filename }}
+                {% else %}
+                    -
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Status</span>
+            <strong><span class="status-pill">{{ job.status }}</span></strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Erstellt am</span>
+            <strong>{{ job.created_at.strftime("%d.%m.%Y %H:%M") }}</strong>
+        </div>
+    </div>
+
+    <div class="page-card">
+        <h2>Druckdaten</h2>
+
+        <div class="detail-row">
+            <span>Drucker</span>
+            <strong>{{ job.printer_name or "-" }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Material</span>
+            <strong>{{ job.material or "-" }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Farbe</span>
+            <strong>{{ job.color or "-" }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Druckzeit</span>
+            <strong>{{ job.planned_print_time or "-" }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Filament</span>
+            <strong>
+                {% if job.planned_weight_grams %}
+                    {{ job.planned_weight_grams }} g
+                {% else %}
+                    -
+                {% endif %}
+            </strong>
+        </div>
+    </div>
+</div>
+
+<div class="detail-grid mt">
+    <div class="page-card">
+        <h2>Status ändern</h2>
+
+        <form method="post" action="/jobs/{{ job.id }}/status">
+            <div class="form-group">
+                <label for="status">Neuer Status</label>
+                <select id="status" name="status">
+                    <option value="Bereit zum Druck" {% if job.status == "Bereit zum Druck" %}selected{% endif %}>Bereit zum Druck</option>
+                    <option value="Druck läuft" {% if job.status == "Druck läuft" %}selected{% endif %}>Druck läuft</option>
+                    <option value="Druck fertig" {% if job.status == "Druck fertig" %}selected{% endif %}>Druck fertig</option>
+                    <option value="Fehler" {% if job.status == "Fehler" %}selected{% endif %}>Fehler</option>
+                    <option value="Nacharbeit" {% if job.status == "Nacharbeit" %}selected{% endif %}>Nacharbeit</option>
+                    <option value="Erledigt" {% if job.status == "Erledigt" %}selected{% endif %}>Erledigt</option>
+                </select>
+            </div>
+
+            <button class="btn" type="submit">Status speichern</button>
+        </form>
+    </div>
+
+    <div class="page-card">
+        <h2>Notizen</h2>
+        <p>{{ job.notes or "Keine Notizen vorhanden." }}</p>
+    </div>
+</div>
+
+<div class="page-card mt">
+    <div class="section-header">
+        <h2>Zeiten zu diesem Druckjob</h2>
+        <a class="btn-secondary" href="/time/new?project_id={{ job.project.id }}&job_id={{ job.id }}">+ Zeit erfassen</a>
+    </div>
+
+    {% if job.time_entries %}
+    <table>
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Kategorie</th>
+                <th>Dauer</th>
+                <th>Notiz</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in job.time_entries %}
+            <tr>
+                <td>{{ entry.created_at.strftime("%d.%m.%Y") }}</td>
+                <td>{{ entry.category }}</td>
+                <td>
+                    {% if entry.duration_minutes %}
+                        {{ entry.duration_minutes }} min
+                    {% else %}
+                        läuft
+                    {% endif %}
+                </td>
+                <td>{{ entry.note or "-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">Für diesen Druckjob wurden noch keine Zeiten erfasst.</p>
+    {% endif %}
+</div>
+{% endblock %}

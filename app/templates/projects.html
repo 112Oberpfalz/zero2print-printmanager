@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Projekte</h1>
+        <p class="muted">Verwalte Kundenprojekte, Dateien und Druckjobs.</p>
+    </div>
+
+    <a class="btn" href="/projects/new">+ Projekt anlegen</a>
+</div>
+
+<div class="filter-card">
+    <form method="get" action="/projects" class="filter-form">
+        <div class="filter-field">
+            <label for="q">Suche</label>
+            <input type="text" id="q" name="q" value="{{ q or '' }}" placeholder="Projekt, Kunde, Beschreibung oder Notiz">
+        </div>
+
+        <div class="filter-field">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <option value="">Alle Status</option>
+                {% for status in statuses %}
+                <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>
+                    {{ status }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-actions">
+            <button class="btn" type="submit">Filtern</button>
+            <a class="btn-secondary" href="/projects">Zurücksetzen</a>
+        </div>
+    </form>
+</div>
+
+{% if projects %}
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Projekt</th>
+                <th>Kunde</th>
+                <th>Status</th>
+                <th>Deadline</th>
+                <th>Erstellt</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for project in projects %}
+            <tr>
+                <td><strong>{{ project.name }}</strong></td>
+                <td>
+                    <a class="link-btn" href="/customers/{{ project.customer.id }}">
+                        {{ project.customer.name }}
+                    </a>
+                </td>
+                <td>
+                    <span class="status-pill {{ status_class(project.status) }}">
+                        {{ project.status }}
+                    </span>
+                </td>
+                <td>{{ project.deadline or "-" }}</td>
+                <td>{{ project.created_at.strftime("%d.%m.%Y") }}</td>
+                <td>
+                    <a class="link-btn" href="/projects/{{ project.id }}">Öffnen</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <h2>Keine Projekte gefunden</h2>
+    <p>Lege ein Projekt an oder ändere deine Filter.</p>
+    <a class="btn" href="/projects/new">Projekt anlegen</a>
+</div>
+{% endif %}
+{% endblock %}

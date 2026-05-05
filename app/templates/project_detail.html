@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ project.name }}</h1>
+        <p class="muted">
+            Projekt von
+            <a class="link-btn" href="/customers/{{ project.customer.id }}">
+                {{ project.customer.name }}
+            </a>
+        </p>
+    </div>
+
+    <div class="header-actions">
+        <a class="btn-secondary" href="/projects">Alle Projekte</a>
+        <a class="btn-secondary" href="/projects/{{ project.id }}/edit">Bearbeiten</a>
+        <a class="btn-secondary" href="/time/new?project_id={{ project.id }}">Zeit erfassen</a>
+
+        <form method="post" action="/projects/{{ project.id }}/archive" onsubmit="return confirm('Projekt wirklich archivieren?');">
+            <button class="btn-secondary" type="submit">Archivieren</button>
+        </form>
+
+        <a class="btn" href="/projects/{{ project.id }}/files/upload">+ Datei hochladen</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="page-card">
+        <h2>Projektdaten</h2>
+
+        <div class="detail-row">
+            <span>Projekt</span>
+            <strong>{{ project.name }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Kunde</span>
+            <strong>
+                <a class="link-btn" href="/customers/{{ project.customer.id }}">
+                    {{ project.customer.name }}
+                </a>
+            </strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Status</span>
+            <strong>
+                <span class="status-pill {{ status_class(project.status) }}">
+                    {{ project.status }}
+                </span>
+            </strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Deadline</span>
+            <strong>{{ project.deadline or "-" }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Erstellt am</span>
+            <strong>{{ project.created_at.strftime("%d.%m.%Y %H:%M") }}</strong>
+        </div>
+    </div>
+
+    <div class="page-card">
+        <h2>Beschreibung</h2>
+        <p>{{ project.description or "Keine Beschreibung vorhanden." }}</p>
+
+        <h2>Notiz</h2>
+        <p>{{ project.note or "Keine Notiz vorhanden." }}</p>
+    </div>
+</div>
+
+<div class="page-card mt">
+    <div class="section-header">
+        <h2>Dateien</h2>
+        <a class="btn" href="/projects/{{ project.id }}/files/upload">+ Datei hochladen</a>
+    </div>
+
+    {% if project.files %}
+    <table>
+        <thead>
+            <tr>
+                <th>Dateiname</th>
+                <th>Typ</th>
+                <th>Größe</th>
+                <th>Version</th>
+                <th>Upload</th>
+                <th>Notiz</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file in project.files %}
+            <tr>
+                <td><strong>{{ file.original_filename }}</strong></td>
+                <td>{{ file.file_type or "-" }}</td>
+                <td>{{ format_file_size(file.file_path) }}</td>
+                <td>{{ file.version or "-" }}</td>
+                <td>{{ file.uploaded_at.strftime("%d.%m.%Y %H:%M") }}</td>
+                <td class="note-cell">{{ file.note or "-" }}</td>
+                <td class="actions-cell">
+                    <a class="link-btn" href="/projects/{{ project.id }}/files/{{ file.id }}/download">Download</a>
+                    |
+                    <a class="link-btn" href="/projects/{{ project.id }}/files/{{ file.id }}/edit">Bearbeiten</a>
+                    |
+                    <a class="link-btn" href="/jobs/new?project_id={{ project.id }}&file_id={{ file.id }}">Druckjob erstellen</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">Noch keine Dateien hochgeladen.</p>
+    {% endif %}
+</div>
+
+<div class="page-card mt">
+    <div class="section-header">
+        <h2>Druckjobs</h2>
+        <a class="btn-secondary" href="/jobs">Zur Druckjobliste</a>
+    </div>
+
+    {% if project.print_jobs %}
+    <table>
+        <thead>
+            <tr>
+                <th>Job</th>
+                <th>Datei</th>
+                <th>Drucker</th>
+                <th>Material</th>
+                <th>Farbe</th>
+                <th>Status</th>
+                <th>Erstellt</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in project.print_jobs %}
+            <tr>
+                <td><strong>DJ-{{ "%04d"|format(job.id) }}</strong></td>
+                <td>
+                    {% if job.file %}
+                        {{ job.file.original_filename }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ job.printer_name or "-" }}</td>
+                <td>{{ job.material or "-" }}</td>
+                <td>{{ job.color or "-" }}</td>
+                <td>
+                    <span class="status-pill {{ status_class(job.status) }}">
+                        {{ job.status }}
+                    </span>
+                </td>
+                <td>{{ job.created_at.strftime("%d.%m.%Y") }}</td>
+                <td class="actions-cell">
+                    <a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a>
+                    |
+                    <a class="link-btn" href="/time/new?project_id={{ project.id }}&job_id={{ job.id }}">Zeit erfassen</a>
+                    |
+                    <a class="link-btn" href="/jobs/{{ job.id }}/pdf" target="_blank">PDF</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">Für dieses Projekt gibt es noch keine Druckjobs.</p>
+    {% endif %}
+</div>
+
+<div class="page-card mt">
+    <div class="section-header">
+        <h2>Zeiten</h2>
+        <a class="btn-secondary" href="/time/new?project_id={{ project.id }}">+ Zeit erfassen</a>
+    </div>
+
+    {% if project.time_entries %}
+    <table>
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Druckjob</th>
+                <th>Kategorie</th>
+                <th>Dauer</th>
+                <th>Notiz</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in project.time_entries %}
+            <tr>
+                <td>{{ entry.created_at.strftime("%d.%m.%Y") }}</td>
+                <td>
+                    {% if entry.print_job %}
+                        <a class="link-btn" href="/jobs/{{ entry.print_job.id }}">
+                            DJ-{{ "%04d"|format(entry.print_job.id) }}
+                        </a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ entry.category }}</td>
+                <td>
+                    {% if entry.duration_minutes %}
+                        {{ entry.duration_minutes }} min
+                    {% else %}
+                        läuft
+                    {% endif %}
+                </td>
+                <td class="note-cell">{{ entry.note or "-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">Für dieses Projekt wurden noch keine Zeiten erfasst.</p>
+    {% endif %}
+</div>
+{% endblock %}

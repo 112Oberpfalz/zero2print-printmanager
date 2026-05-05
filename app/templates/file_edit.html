@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Datei bearbeiten</h1>
+        <p class="muted">
+            <a class="link-btn" href="/projects/{{ project.id }}">{{ project.name }}</a>
+            —
+            {{ file.original_filename }}
+        </p>
+    </div>
+
+    <div class="header-actions">
+        <a class="btn-secondary" href="/projects/{{ project.id }}">Zurück zum Projekt</a>
+        <a class="btn" href="/projects/{{ project.id }}/files/{{ file.id }}/download">Download</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="page-card">
+        <h2>Dateidaten</h2>
+
+        <div class="detail-row">
+            <span>Dateiname</span>
+            <strong>{{ file.original_filename }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Typ</span>
+            <strong>{{ file.file_type or "-" }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Größe</span>
+            <strong>{{ format_file_size(file.file_path) }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Upload</span>
+            <strong>{{ file.uploaded_at.strftime("%d.%m.%Y %H:%M") }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Gespeicherter Name</span>
+            <strong>{{ file.stored_filename }}</strong>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <h2>Notizen bearbeiten</h2>
+
+        <form method="post" action="/projects/{{ project.id }}/files/{{ file.id }}/edit">
+            <div class="form-group">
+                <label for="version">Version</label>
+                <input type="text" id="version" name="version" value="{{ file.version or '' }}" placeholder="z. B. v1, v2, final">
+            </div>
+
+            <div class="form-group">
+                <label for="note">Notiz</label>
+                <textarea id="note" name="note" rows="7" placeholder="z. B. 0.2 mm Layerhöhe, 20 % Infill, finaler Export">{{ file.note or '' }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <a class="btn-secondary" href="/projects/{{ project.id }}">Abbrechen</a>
+                <button class="btn" type="submit">Speichern</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="page-card mt danger-zone">
+    <h2>Datei löschen</h2>
+    <p class="muted">
+        Löschen entfernt die Datei aus der Datenbank und vom lokalen Speicher.
+        Wenn diese Datei bereits mit einem Druckjob verknüpft ist, wird das Löschen blockiert.
+    </p>
+
+    <form method="post" action="/projects/{{ project.id }}/files/{{ file.id }}/delete" onsubmit="return confirm('Datei wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.');">
+        <button class="btn-danger" type="submit">Datei löschen</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Zeit eintragen</h1>
+        <p class="muted">Erfasse Arbeitszeit manuell oder starte einen Timer.</p>
+    </div>
+</div>
+
+{% if projects %}
+<div class="detail-grid">
+    <div class="form-card">
+        <h2>Manuelle Zeit eintragen</h2>
+
+        <form method="post" action="/time/new">
+            <div class="form-group">
+                <label for="manual_project_id">Projekt *</label>
+                <select id="manual_project_id" name="project_id" required>
+                    <option value="">Bitte wählen</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}"
+                        {% if selected_project and selected_project.id == project.id %}selected{% endif %}>
+                        {{ project.customer.name }} — {{ project.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="manual_print_job_id">Druckjob optional</label>
+                <select id="manual_print_job_id" name="print_job_id">
+                    <option value="">Kein Druckjob</option>
+                    {% for job in jobs %}
+                    <option value="{{ job.id }}"
+                        {% if selected_job and selected_job.id == job.id %}selected{% endif %}>
+                        DJ-{{ "%04d"|format(job.id) }} — {{ job.project.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="manual_category">Kategorie *</label>
+                <select id="manual_category" name="category" required>
+                    {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="duration_minutes">Dauer in Minuten *</label>
+                <input type="number" id="duration_minutes" name="duration_minutes" min="1" step="1" required placeholder="z. B. 45">
+            </div>
+
+            <div class="form-group">
+                <label for="manual_note">Notiz</label>
+                <textarea id="manual_note" name="note" rows="4" placeholder="z. B. STL angepasst, Maße geprüft, Support entfernt"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <a class="btn-secondary" href="/time">Abbrechen</a>
+                <button class="btn" type="submit">Zeit speichern</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="form-card">
+        <h2>Timer starten</h2>
+
+        <form method="post" action="/time/start">
+            <div class="form-group">
+                <label for="timer_project_id">Projekt *</label>
+                <select id="timer_project_id" name="project_id" required>
+                    <option value="">Bitte wählen</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}"
+                        {% if selected_project and selected_project.id == project.id %}selected{% endif %}>
+                        {{ project.customer.name }} — {{ project.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="timer_print_job_id">Druckjob optional</label>
+                <select id="timer_print_job_id" name="print_job_id">
+                    <option value="">Kein Druckjob</option>
+                    {% for job in jobs %}
+                    <option value="{{ job.id }}"
+                        {% if selected_job and selected_job.id == job.id %}selected{% endif %}>
+                        DJ-{{ "%04d"|format(job.id) }} — {{ job.project.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="timer_category">Kategorie *</label>
+                <select id="timer_category" name="category" required>
+                    {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="timer_note">Notiz</label>
+                <textarea id="timer_note" name="note" rows="4" placeholder="z. B. CAD-Änderung gestartet"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <a class="btn-secondary" href="/time">Abbrechen</a>
+                <button class="btn" type="submit">Timer starten</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% else %}
+<div class="empty-state">
+    <h2>Du brauchst zuerst ein Projekt</h2>
+    <p>Bevor du Zeiten erfassen kannst, muss mindestens ein Projekt existieren.</p>
+    <a class="btn" href="/projects/new">Projekt anlegen</a>
+</div>
+{% endif %}
+{% endblock %}

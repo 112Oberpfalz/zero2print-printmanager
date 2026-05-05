@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Kunden</h1>
+        <p class="muted">Verwalte deine Kunden und deren Projekte.</p>
+    </div>
+
+    <a class="btn" href="/customers/new">+ Kunde anlegen</a>
+</div>
+
+<div class="filter-card">
+    <form method="get" action="/customers" class="filter-form">
+        <div class="filter-field">
+            <label for="q">Suche</label>
+            <input type="text" id="q" name="q" value="{{ q or '' }}" placeholder="Name, E-Mail, Telefon oder Notiz">
+        </div>
+
+        <div class="filter-actions">
+            <button class="btn" type="submit">Suchen</button>
+            <a class="btn-secondary" href="/customers">Zurücksetzen</a>
+        </div>
+    </form>
+</div>
+
+{% if customers %}
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Name / Firma</th>
+                <th>E-Mail</th>
+                <th>Telefon</th>
+                <th>Erstellt</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>
+                    <strong>{{ customer.name }}</strong>
+                </td>
+                <td>{{ customer.email or "-" }}</td>
+                <td>{{ customer.phone or "-" }}</td>
+                <td>{{ customer.created_at.strftime("%d.%m.%Y") }}</td>
+                <td>
+                    <a class="link-btn" href="/customers/{{ customer.id }}">Öffnen</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <h2>Keine Kunden gefunden</h2>
+    <p>Lege einen neuen Kunden an oder ändere deine Suche.</p>
+    <a class="btn" href="/customers/new">Kunde anlegen</a>
+</div>
+{% endif %}
+{% endblock %}

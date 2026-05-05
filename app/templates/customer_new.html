@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Kunde anlegen</h1>
+        <p class="muted">Erstelle einen neuen Kunden für deine Druckprojekte.</p>
+    </div>
+</div>
+
+<div class="form-card">
+    <form method="post" action="/customers/new">
+        <div class="form-group">
+            <label for="name">Name / Firma *</label>
+            <input type="text" id="name" name="name" required autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="email">E-Mail</label>
+            <input type="email" id="email" name="email">
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Telefon</label>
+            <input type="text" id="phone" name="phone">
+        </div>
+
+        <div class="form-group">
+            <label for="note">Notiz</label>
+            <textarea id="note" name="note" rows="5"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a class="btn-secondary" href="/customers">Abbrechen</a>
+            <button class="btn" type="submit">Kunde speichern</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ customer.name }}</h1>
+        <p class="muted">Kundendetail</p>
+    </div>
+
+    <div class="header-actions">
+        <a class="btn-secondary" href="/customers/{{ customer.id }}/edit">Bearbeiten</a>
+        <a class="btn" href="/projects/new?customer_id={{ customer.id }}">+ Projekt anlegen</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <div class="page-card">
+        <h2>Kontaktdaten</h2>
+
+        <div class="detail-row">
+            <span>Name / Firma</span>
+            <strong>{{ customer.name }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>E-Mail</span>
+            <strong>{{ customer.email or "-" }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Telefon</span>
+            <strong>{{ customer.phone or "-" }}</strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Erstellt am</span>
+            <strong>{{ customer.created_at.strftime("%d.%m.%Y %H:%M") }}</strong>
+        </div>
+    </div>
+
+    <div class="page-card">
+        <h2>Notiz</h2>
+        <p>{{ customer.note or "Keine Notiz vorhanden." }}</p>
+    </div>
+</div>
+
+<div class="page-card mt">
+    <h2>Projekte</h2>
+
+    {% if customer.projects %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Projekt</th>
+                    <th>Status</th>
+                    <th>Erstellt</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in customer.projects %}
+                <tr>
+                    <td><strong>{{ project.name }}</strong></td>
+                    <td>
+                        <span class="status-pill {{ status_class(project.status) }}">
+                            {{ project.status }}
+                        </span>
+                    </td>
+                    <td>{{ project.created_at.strftime("%d.%m.%Y") }}</td>
+                    <td>
+                        <a class="link-btn" href="/projects/{{ project.id }}">Öffnen</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">Für diesen Kunden gibt es noch keine Projekte.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Zeiten</h1>
+        <p class="muted">Zeiterfassung für CAD, Slicing, Nacharbeit, Verpackung und Kommunikation.</p>
+    </div>
+
+    <a class="btn" href="/time/new">+ Zeit eintragen</a>
+</div>
+
+{% if active_entries %}
+<div class="page-card active-card">
+    <h2>Aktive Timer</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Projekt</th>
+                <th>Druckjob</th>
+                <th>Kategorie</th>
+                <th>Gestartet</th>
+                <th>Notiz</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in active_entries %}
+            <tr>
+                <td>
+                    <a class="link-btn" href="/projects/{{ entry.project.id }}">
+                        {{ entry.project.name }}
+                    </a>
+                </td>
+                <td>
+                    {% if entry.print_job %}
+                        <a class="link-btn" href="/jobs/{{ entry.print_job.id }}">
+                            DJ-{{ "%04d"|format(entry.print_job.id) }}
+                        </a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ entry.category }}</td>
+                <td>{{ entry.start_time.strftime("%d.%m.%Y %H:%M") }}</td>
+                <td>{{ entry.note or "-" }}</td>
+                <td>
+                    <form method="post" action="/time/{{ entry.id }}/stop">
+                        <button class="btn-small" type="submit">Stoppen</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="summary-grid">
+    <div class="card">
+        <h2>Gesamt erfasst</h2>
+        <p>{{ total_minutes }} min</p>
+    </div>
+
+    <div class="card">
+        <h2>In Stunden</h2>
+        <p>{{ "%.2f"|format(total_minutes / 60) }} h</p>
+    </div>
+
+    <div class="card">
+        <h2>Aktive Timer</h2>
+        <p>{{ active_entries|length }}</p>
+    </div>
+</div>
+
+{% if entries %}
+<div class="table-card mt">
+    <table>
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Projekt</th>
+                <th>Druckjob</th>
+                <th>Kategorie</th>
+                <th>Dauer</th>
+                <th>Notiz</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr>
+                <td>{{ entry.created_at.strftime("%d.%m.%Y") }}</td>
+                <td>
+                    <a class="link-btn" href="/projects/{{ entry.project.id }}">
+                        {{ entry.project.name }}
+                    </a>
+                </td>
+                <td>
+                    {% if entry.print_job %}
+                        <a class="link-btn" href="/jobs/{{ entry.print_job.id }}">
+                            DJ-{{ "%04d"|format(entry.print_job.id) }}
+                        </a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ entry.category }}</td>
+                <td>
+                    {% if entry.duration_minutes %}
+                        {{ entry.duration_minutes }} min
+                    {% else %}
+                        läuft
+                    {% endif %}
+                </td>
+                <td>{{ entry.note or "-" }}</td>
+                <td>
+                    <form method="post" action="/time/{{ entry.id }}/delete" onsubmit="return confirm('Zeit wirklich löschen?');">
+                        <button class="danger-link" type="submit">Löschen</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <h2>Noch keine Zeiten erfasst</h2>
+    <p>Trage manuell eine Zeit ein oder starte einen Timer für ein Projekt.</p>
+    <a class="btn" href="/time/new">Erste Zeit erfassen</a>
+</div>
+{% endif %}
+{% endblock %}

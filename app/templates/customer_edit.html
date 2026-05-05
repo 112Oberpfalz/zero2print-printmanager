@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Kunde bearbeiten</h1>
+        <p class="muted">{{ customer.name }}</p>
+    </div>
+</div>
+
+<div class="form-card">
+    <form method="post" action="/customers/{{ customer.id }}/edit">
+        <div class="form-group">
+            <label for="name">Name / Firma *</label>
+            <input type="text" id="name" name="name" value="{{ customer.name }}" required autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="email">E-Mail</label>
+            <input type="email" id="email" name="email" value="{{ customer.email or '' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Telefon</label>
+            <input type="text" id="phone" name="phone" value="{{ customer.phone or '' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="note">Notiz</label>
+            <textarea id="note" name="note" rows="5">{{ customer.note or '' }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <a class="btn-secondary" href="/customers/{{ customer.id }}">Abbrechen</a>
+            <button class="btn" type="submit">Änderungen speichern</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
