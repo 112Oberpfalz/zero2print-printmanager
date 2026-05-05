@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Heute zu tun</h1>
+        <p class="muted">
+            Tagesübersicht für laufende Timer, Druckjobs, Nacharbeit und offene Projekte.
+        </p>
+    </div>
+
+    <div class="header-actions">
+        <a class="btn-secondary" href="/time/new">+ Zeit erfassen</a>
+        <a class="btn" href="/jobs/new">+ Druckjob</a>
+    </div>
+</div>
+
+<div class="cards">
+    <div class="card">
+        <h2>Aktive Timer</h2>
+        <p>{{ active_timers|length }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Druck läuft</h2>
+        <p>{{ running_jobs|length }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Bereit zum Druck</h2>
+        <p>{{ ready_jobs|length }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Heute erfasst</h2>
+        <p>{{ today_minutes }} min</p>
+    </div>
+</div>
+
+{% if active_timers %}
+<div class="page-card active-card mt">
+    <div class="section-header">
+        <h2>Aktive Timer</h2>
+        <a class="btn-secondary" href="/time">Alle Zeiten</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Projekt</th>
+                <th>Druckjob</th>
+                <th>Kategorie</th>
+                <th>Gestartet</th>
+                <th>Notiz</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in active_timers %}
+            <tr>
+                <td>
+                    <a class="link-btn" href="/projects/{{ entry.project.id }}">
+                        {{ entry.project.name }}
+                    </a>
+                </td>
+                <td>
+                    {% if entry.print_job %}
+                        <a class="link-btn" href="/jobs/{{ entry.print_job.id }}">
+                            DJ-{{ "%04d"|format(entry.print_job.id) }}
+                        </a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ entry.category }}</td>
+                <td>{{ entry.start_time.strftime("%d.%m.%Y %H:%M") }}</td>
+                <td class="note-cell">{{ entry.note or "-" }}</td>
+                <td>
+                    <form method="post" action="/time/{{ entry.id }}/stop">
+                        <button class="btn-small" type="submit">Stoppen</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="today-grid mt">
+    <div class="page-card">
+        <div class="section-header">
+            <h2>Druck läuft</h2>
+            <a class="link-btn" href="/jobs?status=Druck+läuft">Alle anzeigen</a>
+        </div>
+
+        {% if running_jobs %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Job</th>
+                    <th>Projekt</th>
+                    <th>Material</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in running_jobs %}
+                <tr>
+                    <td><strong>DJ-{{ "%04d"|format(job.id) }}</strong></td>
+                    <td>{{ job.project.name }}</td>
+                    <td>{{ job.material or "-" }} / {{ job.color or "-" }}</td>
+                    <td>
+                        <span class="status-pill {{ status_class(job.status) }}">
+                            {{ job.status }}
+                        </span>
+                    </td>
+                    <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="muted">Aktuell läuft kein Druckjob.</p>
+        {% endif %}
+    </div>
+
+    <div class="page-card">
+        <div class="section-header">
+            <h2>Bereit zum Druck</h2>
+            <a class="link-btn" href="/jobs?status=Bereit+zum+Druck">Alle anzeigen</a>
+        </div>
+
+        {% if ready_jobs %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Job</th>
+                    <th>Projekt</th>
+                    <th>Datei</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in ready_jobs %}
+                <tr>
+                    <td><strong>DJ-{{ "%04d"|format(job.id) }}</strong></td>
+                    <td>{{ job.project.name }}</td>
+                    <td>
+                        {% if job.file %}
+                            {{ job.file.original_filename }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="muted">Keine Druckjobs bereit.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="today-grid mt">
+    <div class="page-card">
+        <div class="section-header">
+            <h2>Nacharbeit offen</h2>
+            <a class="link-btn" href="/jobs?status=Nacharbeit">Alle anzeigen</a>
+        </div>
+
+        {% if post_jobs %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Job</th>
+                    <th>Projekt</th>
+                    <th>Material</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in post_jobs %}
+                <tr>
+                    <td><strong>DJ-{{ "%04d"|format(job.id) }}</strong></td>
+                    <td>{{ job.project.name }}</td>
+                    <td>{{ job.material or "-" }} / {{ job.color or "-" }}</td>
+                    <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="muted">Keine offene Nacharbeit.</p>
+        {% endif %}
+    </div>
+
+    <div class="page-card error-card">
+        <div class="section-header">
+            <h2>Fehler / Problemjobs</h2>
+            <a class="link-btn" href="/jobs?status=Fehler">Alle anzeigen</a>
+        </div>
+
+        {% if error_jobs %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Job</th>
+                    <th>Projekt</th>
+                    <th>Notiz</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in error_jobs %}
+                <tr>
+                    <td><strong>DJ-{{ "%04d"|format(job.id) }}</strong></td>
+                    <td>{{ job.project.name }}</td>
+                    <td class="note-cell">{{ job.notes or "-" }}</td>
+                    <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="muted">Keine Fehlerjobs vorhanden.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="page-card mt">
+    <div class="section-header">
+        <h2>Offene Projekte</h2>
+        <a class="link-btn" href="/projects">Alle Projekte</a>
+    </div>
+
+    {% if open_projects %}
+    <table>
+        <thead>
+            <tr>
+                <th>Projekt</th>
+                <th>Kunde</th>
+                <th>Status</th>
+                <th>Deadline</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for project in open_projects %}
+            <tr>
+                <td><strong>{{ project.name }}</strong></td>
+                <td>{{ project.customer.name }}</td>
+                <td>
+                    <span class="status-pill {{ status_class(project.status) }}">
+                        {{ project.status }}
+                    </span>
+                </td>
+                <td>{{ project.deadline or "-" }}</td>
+                <td><a class="link-btn" href="/projects/{{ project.id }}">Öffnen</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">Keine offenen Projekte.</p>
+    {% endif %}
+</div>
+{% endblock %}

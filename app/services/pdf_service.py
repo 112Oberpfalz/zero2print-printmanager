@@ -17,6 +17,13 @@ def get_job_file_name(job):
     return "-"
 
 
+def checklist_value(checklist, field_name):
+    if not checklist:
+        return False
+
+    return bool(getattr(checklist, field_name, False))
+
+
 def generate_print_job_pdf(job, base_url: str) -> Path:
     PDF_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -69,7 +76,7 @@ def generate_print_job_pdf(job, base_url: str) -> Path:
 
     y = draw_table(c, margin_x, y, rows, width)
 
-    y -= 10 * mm
+    y -= 8 * mm
     c.setFont("Helvetica-Bold", 16)
     c.setFillColor(colors.HexColor("#111827"))
     c.drawString(margin_x, y, "Druckdaten")
@@ -85,7 +92,26 @@ def generate_print_job_pdf(job, base_url: str) -> Path:
 
     y = draw_table(c, margin_x, y, rows, width)
 
-    y -= 10 * mm
+    y -= 8 * mm
+    c.setFont("Helvetica-Bold", 16)
+    c.setFillColor(colors.HexColor("#111827"))
+    c.drawString(margin_x, y, "Checkliste")
+    y -= 8 * mm
+
+    checklist_rows = [
+        ("Datei geprueft", checklist_value(job.checklist, "file_checked")),
+        ("Slicer geprueft", checklist_value(job.checklist, "slicer_checked")),
+        ("Material vorbereitet", checklist_value(job.checklist, "material_ready")),
+        ("Druckbett gereinigt", checklist_value(job.checklist, "bed_cleaned")),
+        ("Erste Schicht kontrolliert", checklist_value(job.checklist, "first_layer_checked")),
+        ("Druck fertig geprueft", checklist_value(job.checklist, "print_finished_checked")),
+        ("Nacharbeit erledigt", checklist_value(job.checklist, "post_processing_done")),
+        ("Verpackt", checklist_value(job.checklist, "packed")),
+    ]
+
+    y = draw_checklist(c, margin_x, y, checklist_rows)
+
+    y -= 6 * mm
     c.setFont("Helvetica-Bold", 16)
     c.setFillColor(colors.HexColor("#111827"))
     c.drawString(margin_x, y, "Notizen")
@@ -125,7 +151,7 @@ def generate_print_job_pdf(job, base_url: str) -> Path:
 def draw_table(c, x, y, rows, page_width):
     label_width = 45 * mm
     value_width = page_width - x * 2 - label_width
-    row_height = 10 * mm
+    row_height = 9 * mm
 
     for label, value in rows:
         c.setFillColor(colors.HexColor("#F9FAFB"))
@@ -148,6 +174,36 @@ def draw_table(c, x, y, rows, page_width):
         y -= row_height
 
     return y
+
+
+def draw_checklist(c, x, y, rows):
+    col_width = 78 * mm
+    row_height = 7 * mm
+
+    for index, (label, checked) in enumerate(rows):
+        col = index % 2
+        row = index // 2
+
+        item_x = x + (col * col_width)
+        item_y = y - (row * row_height)
+
+        box_size = 4 * mm
+
+        c.setStrokeColor(colors.HexColor("#111827"))
+        c.setFillColor(colors.white)
+        c.rect(item_x, item_y - box_size + 1 * mm, box_size, box_size, fill=0, stroke=1)
+
+        if checked:
+            c.setFillColor(colors.HexColor("#111827"))
+            c.setFont("Helvetica-Bold", 9)
+            c.drawString(item_x + 0.7 * mm, item_y - 2.4 * mm, "X")
+
+        c.setFillColor(colors.HexColor("#111827"))
+        c.setFont("Helvetica", 9)
+        c.drawString(item_x + 6 * mm, item_y - 2.2 * mm, label)
+
+    used_rows = (len(rows) + 1) // 2
+    return y - (used_rows * row_height)
 
 
 def draw_multiline_text(c, x, y, text, max_width):

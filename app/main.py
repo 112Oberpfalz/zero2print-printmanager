@@ -9,7 +9,7 @@ from app.database import Base, engine, get_db
 import app.models
 
 from app.models import Customer, Project, PrintJob, TimeEntry
-from app.routes import customers, projects, print_jobs, time_entries, files, backup
+from app.routes import customers, projects, print_jobs, time_entries, files, backup, today
 from app.template_helpers import status_class
 
 Base.metadata.create_all(bind=engine)
@@ -27,6 +27,7 @@ app.include_router(print_jobs.router)
 app.include_router(time_entries.router)
 app.include_router(files.router)
 app.include_router(backup.router)
+app.include_router(today.router)
 
 
 @app.get("/")
@@ -59,7 +60,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         .count()
     )
 
-    today = date.today()
+    today_date = date.today()
 
     all_time_entries = db.query(TimeEntry).all()
     today_minutes = 0
@@ -69,7 +70,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         if entry.duration_minutes:
             total_minutes += entry.duration_minutes
 
-            if entry.created_at and entry.created_at.date() == today:
+            if entry.created_at and entry.created_at.date() == today_date:
                 today_minutes += entry.duration_minutes
 
     latest_projects = (
