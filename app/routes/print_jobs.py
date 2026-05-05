@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Request, Depends, Form, Query
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
@@ -5,7 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from app.database import get_db
-from app.models import PrintJob, Project, ProjectFile, Customer
+from app.models import PrintJob, Project, ProjectFile, Customer, PrintJobChecklist
 from app.services.pdf_service import generate_print_job_pdf
 from app.template_helpers import status_class
 
@@ -71,6 +73,31 @@ def update_project_status_from_job(project: Project, job_status: str):
 
     if new_project_status:
         project.status = new_project_status
+
+
+def get_or_create_checklist(db: Session, job: PrintJob):
+    if not job:
+        return None
+
+    checklist = (
+        db.query(PrintJobChecklist)
+        .filter(PrintJobChecklist.print_job_id == job.id)
+        .first()
+    )
+
+    if checklist:
+        return checklist
+
+    checklist = PrintJobChecklist(print_job_id=job.id)
+    db.add(checklist)
+    db.commit()
+    db.refresh(checklist)
+
+    return checklist
+
+
+def checkbox_value(value):
+    return value is not None
 
 
 @router.get("")
@@ -201,6 +228,10 @@ def print_job_create(
     )
 
     db.add(job)
+    db.flush()
+
+    checklist = PrintJobChecklist(print_job_id=job.id)
+    db.add(checklist)
 
     update_project_status_from_job(project, clean_status)
 
@@ -335,10 +366,54 @@ def print_job_mark_done(
     if job:
         job.status = "Erledigt"
         update_project_status_from_job(job.project, "Erledigt")
+
+        checklist = get_or_create_checklist(db, job)
+        if checklist:
+            checklist.print_finished_checked = True
+            checklist.updated_at = datetime.utcnow()
+
         db.commit()
 
     return RedirectResponse(
         url=f"/jobs/{job_id}",
+        status_code=303
+    )
+
+
+@router.post("/{job_id}/checklist")
+def print_job_update_checklist(
+    job_id: int,
+    file_checked: str | None = Form(default=None),
+    slicer_checked: str | None = Form(default=None),
+    material_ready: str | None = Form(default=None),
+    bed_cleaned: str | None = Form(default=None),
+    first_layer_checked: str | None = Form(default=None),
+    print_finished_checked: str | None = Form(default=None),
+    post_processing_done: str | None = Form(default=None),
+    packed: str | None = Form(default=None),
+    db: Session = Depends(get_db)
+):
+    job = db.query(PrintJob).filter(PrintJob.id == job_id).first()
+
+    if not job:
+        return RedirectResponse(url="/jobs", status_code=303)
+
+    checklist = get_or_create_checklist(db, job)
+
+    checklist.file_checked = checkbox_value(file_checked)
+    checklist.slicer_checked = checkbox_value(slicer_checked)
+    checklist.material_ready = checkbox_value(material_ready)
+    checklist.bed_cleaned = checkbox_value(bed_cleaned)
+    checklist.first_layer_checked = checkbox_value(first_layer_checked)
+    checklist.print_finished_checked = checkbox_value(print_finished_checked)
+    checklist.post_processing_done = checkbox_value(post_processing_done)
+    checklist.packed = checkbox_value(packed)
+    checklist.updated_at = datetime.utcnow()
+
+    db.commit()
+
+    return RedirectResponse(
+        url=f"/jobs/{job.id}",
         status_code=303
     )
 
@@ -383,11 +458,14 @@ def print_job_detail(
             status_code=404
         )
 
+    checklist = get_or_create_checklist(db, job)
+
     return templates.TemplateResponse(
         request=request,
         name="print_job_detail.html",
         context={
             "title": f"DJ-{job.id:04d}",
-            "job": job
+            "job": job,
+            "checklist": checklist
         }
     )

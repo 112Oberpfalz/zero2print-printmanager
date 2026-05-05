@@ -66,7 +66,11 @@
 
         <div class="detail-row">
             <span>Status</span>
-            <strong><span class="status-pill">{{ job.status }}</span></strong>
+            <strong>
+                <span class="status-pill {{ status_class(job.status) }}">
+                    {{ job.status }}
+                </span>
+            </strong>
         </div>
 
         <div class="detail-row">
@@ -109,6 +113,68 @@
             </strong>
         </div>
     </div>
+</div>
+
+<div class="page-card mt">
+    <div class="section-header">
+        <h2>Druckjob-Checkliste</h2>
+        <span class="muted small">
+            Zuletzt aktualisiert:
+            {% if checklist and checklist.updated_at %}
+                {{ checklist.updated_at.strftime("%d.%m.%Y %H:%M") }}
+            {% else %}
+                -
+            {% endif %}
+        </span>
+    </div>
+
+    <form method="post" action="/jobs/{{ job.id }}/checklist">
+        <div class="checklist-grid">
+            <label class="checklist-item">
+                <input type="checkbox" name="file_checked" value="1" {% if checklist and checklist.file_checked %}checked{% endif %}>
+                <span>Datei geprüft</span>
+            </label>
+
+            <label class="checklist-item">
+                <input type="checkbox" name="slicer_checked" value="1" {% if checklist and checklist.slicer_checked %}checked{% endif %}>
+                <span>Slicer geprüft</span>
+            </label>
+
+            <label class="checklist-item">
+                <input type="checkbox" name="material_ready" value="1" {% if checklist and checklist.material_ready %}checked{% endif %}>
+                <span>Material vorbereitet</span>
+            </label>
+
+            <label class="checklist-item">
+                <input type="checkbox" name="bed_cleaned" value="1" {% if checklist and checklist.bed_cleaned %}checked{% endif %}>
+                <span>Druckbett gereinigt</span>
+            </label>
+
+            <label class="checklist-item">
+                <input type="checkbox" name="first_layer_checked" value="1" {% if checklist and checklist.first_layer_checked %}checked{% endif %}>
+                <span>Erste Schicht kontrolliert</span>
+            </label>
+
+            <label class="checklist-item">
+                <input type="checkbox" name="print_finished_checked" value="1" {% if checklist and checklist.print_finished_checked %}checked{% endif %}>
+                <span>Druck fertig geprüft</span>
+            </label>
+
+            <label class="checklist-item">
+                <input type="checkbox" name="post_processing_done" value="1" {% if checklist and checklist.post_processing_done %}checked{% endif %}>
+                <span>Nacharbeit erledigt</span>
+            </label>
+
+            <label class="checklist-item">
+                <input type="checkbox" name="packed" value="1" {% if checklist and checklist.packed %}checked{% endif %}>
+                <span>Verpackt</span>
+            </label>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn" type="submit">Checkliste speichern</button>
+        </div>
+    </form>
 </div>
 
 <div class="detail-grid mt">

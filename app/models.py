@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -101,6 +101,33 @@ class PrintJob(Base):
         "TimeEntry",
         back_populates="print_job"
     )
+
+    checklist = relationship(
+        "PrintJobChecklist",
+        back_populates="print_job",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
+
+class PrintJobChecklist(Base):
+    __tablename__ = "print_job_checklists"
+
+    id = Column(Integer, primary_key=True, index=True)
+    print_job_id = Column(Integer, ForeignKey("print_jobs.id"), nullable=False, unique=True)
+
+    file_checked = Column(Boolean, default=False)
+    slicer_checked = Column(Boolean, default=False)
+    material_ready = Column(Boolean, default=False)
+    bed_cleaned = Column(Boolean, default=False)
+    first_layer_checked = Column(Boolean, default=False)
+    print_finished_checked = Column(Boolean, default=False)
+    post_processing_done = Column(Boolean, default=False)
+    packed = Column(Boolean, default=False)
+
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+    print_job = relationship("PrintJob", back_populates="checklist")
 
 
 class TimeEntry(Base):
