@@ -1,6 +1,7 @@
 from datetime import datetime, date
 
 from fastapi import FastAPI, Request, Depends
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -31,6 +32,11 @@ app.include_router(today.router)
 
 
 @app.get("/")
+def home():
+    return RedirectResponse(url="/today", status_code=303)
+
+
+@app.get("/dashboard")
 def dashboard(request: Request, db: Session = Depends(get_db)):
     customers_count = db.query(Customer).count()
     projects_count = db.query(Project).count()
