@@ -6,11 +6,21 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Project, PrintJob, TimeEntry
-from app.template_helpers import status_class
+from app.template_helpers import (
+    status_class,
+    checklist_done_count,
+    checklist_total_count,
+    checklist_progress,
+    checklist_progress_class,
+)
 
 router = APIRouter(prefix="/today", tags=["today"])
 templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["status_class"] = status_class
+templates.env.globals["checklist_done_count"] = checklist_done_count
+templates.env.globals["checklist_total_count"] = checklist_total_count
+templates.env.globals["checklist_progress"] = checklist_progress
+templates.env.globals["checklist_progress_class"] = checklist_progress_class
 
 
 @router.get("")

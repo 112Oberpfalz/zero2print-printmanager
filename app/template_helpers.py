@@ -1,6 +1,18 @@
 from pathlib import Path
 
 
+CHECKLIST_FIELDS = [
+    "file_checked",
+    "slicer_checked",
+    "material_ready",
+    "bed_cleaned",
+    "first_layer_checked",
+    "print_finished_checked",
+    "post_processing_done",
+    "packed",
+]
+
+
 def status_class(status: str) -> str:
     if not status:
         return "status-default"
@@ -49,3 +61,51 @@ def format_file_size(file_path: str) -> str:
 
     size_gb = size_mb / 1024
     return f"{size_gb:.2f} GB"
+
+
+def checklist_done_count(job) -> int:
+    if not job:
+        return 0
+
+    checklist = getattr(job, "checklist", None)
+
+    if not checklist:
+        return 0
+
+    done = 0
+
+    for field in CHECKLIST_FIELDS:
+        if getattr(checklist, field, False):
+            done += 1
+
+    return done
+
+
+def checklist_total_count() -> int:
+    return len(CHECKLIST_FIELDS)
+
+
+def checklist_progress(job) -> int:
+    total = checklist_total_count()
+
+    if total <= 0:
+        return 0
+
+    done = checklist_done_count(job)
+
+    return int(round((done / total) * 100))
+
+
+def checklist_progress_class(job) -> str:
+    progress = checklist_progress(job)
+
+    if progress >= 100:
+        return "progress-complete"
+
+    if progress >= 60:
+        return "progress-good"
+
+    if progress >= 30:
+        return "progress-mid"
+
+    return "progress-low"

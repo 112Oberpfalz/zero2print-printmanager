@@ -48,6 +48,7 @@
                 <th>Drucker</th>
                 <th>Material</th>
                 <th>Status</th>
+                <th>Fortschritt</th>
                 <th>Erstellt</th>
                 <th></th>
             </tr>
@@ -79,6 +80,16 @@
                     <span class="status-pill {{ status_class(job.status) }}">
                         {{ job.status }}
                     </span>
+                </td>
+                <td>
+                    <div class="mini-progress-text">
+                        {{ checklist_done_count(job) }}/{{ checklist_total_count() }}
+                        —
+                        {{ checklist_progress(job) }} %
+                    </div>
+                    <div class="mini-progress-wrap">
+                        <div class="mini-progress-bar {{ checklist_progress_class(job) }}" style="width: {{ checklist_progress(job) }}%;"></div>
+                    </div>
                 </td>
                 <td>{{ job.created_at.strftime("%d.%m.%Y") }}</td>
                 <td>

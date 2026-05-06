@@ -9,11 +9,21 @@ from sqlalchemy import or_
 from app.database import get_db
 from app.models import PrintJob, Project, ProjectFile, Customer, PrintJobChecklist
 from app.services.pdf_service import generate_print_job_pdf
-from app.template_helpers import status_class
+from app.template_helpers import (
+    status_class,
+    checklist_done_count,
+    checklist_total_count,
+    checklist_progress,
+    checklist_progress_class,
+)
 
 router = APIRouter(prefix="/jobs", tags=["print_jobs"])
 templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["status_class"] = status_class
+templates.env.globals["checklist_done_count"] = checklist_done_count
+templates.env.globals["checklist_total_count"] = checklist_total_count
+templates.env.globals["checklist_progress"] = checklist_progress
+templates.env.globals["checklist_progress_class"] = checklist_progress_class
 
 
 JOB_STATUSES = [
@@ -53,10 +63,6 @@ def parse_optional_int(value):
 
 
 def update_project_status_from_job(project: Project, job_status: str):
-    """
-    Aktualisiert den Projektstatus automatisch anhand des Druckjob-Status.
-    Bewusst simpel gehalten, damit der Workflow im Alltag nicht nervt.
-    """
     if not project or not job_status:
         return
 

@@ -6,12 +6,23 @@ from sqlalchemy import or_
 
 from app.database import get_db
 from app.models import Project, Customer
-from app.template_helpers import status_class, format_file_size
+from app.template_helpers import (
+    status_class,
+    format_file_size,
+    checklist_done_count,
+    checklist_total_count,
+    checklist_progress,
+    checklist_progress_class,
+)
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["status_class"] = status_class
 templates.env.globals["format_file_size"] = format_file_size
+templates.env.globals["checklist_done_count"] = checklist_done_count
+templates.env.globals["checklist_total_count"] = checklist_total_count
+templates.env.globals["checklist_progress"] = checklist_progress
+templates.env.globals["checklist_progress_class"] = checklist_progress_class
 
 
 PROJECT_STATUSES = [

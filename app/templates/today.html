@@ -101,7 +101,7 @@
                     <th>Job</th>
                     <th>Projekt</th>
                     <th>Material</th>
-                    <th>Status</th>
+                    <th>Fortschritt</th>
                     <th></th>
                 </tr>
             </thead>
@@ -112,9 +112,10 @@
                     <td>{{ job.project.name }}</td>
                     <td>{{ job.material or "-" }} / {{ job.color or "-" }}</td>
                     <td>
-                        <span class="status-pill {{ status_class(job.status) }}">
-                            {{ job.status }}
-                        </span>
+                        <div class="mini-progress-text">{{ checklist_progress(job) }} %</div>
+                        <div class="mini-progress-wrap">
+                            <div class="mini-progress-bar {{ checklist_progress_class(job) }}" style="width: {{ checklist_progress(job) }}%;"></div>
+                        </div>
                     </td>
                     <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
                 </tr>
@@ -139,6 +140,7 @@
                     <th>Job</th>
                     <th>Projekt</th>
                     <th>Datei</th>
+                    <th>Fortschritt</th>
                     <th></th>
                 </tr>
             </thead>
@@ -153,6 +155,12 @@
                         {% else %}
                             -
                         {% endif %}
+                    </td>
+                    <td>
+                        <div class="mini-progress-text">{{ checklist_progress(job) }} %</div>
+                        <div class="mini-progress-wrap">
+                            <div class="mini-progress-bar {{ checklist_progress_class(job) }}" style="width: {{ checklist_progress(job) }}%;"></div>
+                        </div>
                     </td>
                     <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
                 </tr>
@@ -179,6 +187,7 @@
                     <th>Job</th>
                     <th>Projekt</th>
                     <th>Material</th>
+                    <th>Fortschritt</th>
                     <th></th>
                 </tr>
             </thead>
@@ -188,6 +197,12 @@
                     <td><strong>DJ-{{ "%04d"|format(job.id) }}</strong></td>
                     <td>{{ job.project.name }}</td>
                     <td>{{ job.material or "-" }} / {{ job.color or "-" }}</td>
+                    <td>
+                        <div class="mini-progress-text">{{ checklist_progress(job) }} %</div>
+                        <div class="mini-progress-wrap">
+                            <div class="mini-progress-bar {{ checklist_progress_class(job) }}" style="width: {{ checklist_progress(job) }}%;"></div>
+                        </div>
+                    </td>
                     <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
                 </tr>
                 {% endfor %}
@@ -210,7 +225,7 @@
                 <tr>
                     <th>Job</th>
                     <th>Projekt</th>
-                    <th>Notiz</th>
+                    <th>Fortschritt</th>
                     <th></th>
                 </tr>
             </thead>
@@ -219,7 +234,12 @@
                 <tr>
                     <td><strong>DJ-{{ "%04d"|format(job.id) }}</strong></td>
                     <td>{{ job.project.name }}</td>
-                    <td class="note-cell">{{ job.notes or "-" }}</td>
+                    <td>
+                        <div class="mini-progress-text">{{ checklist_progress(job) }} %</div>
+                        <div class="mini-progress-wrap">
+                            <div class="mini-progress-bar {{ checklist_progress_class(job) }}" style="width: {{ checklist_progress(job) }}%;"></div>
+                        </div>
+                    </td>
                     <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
                 </tr>
                 {% endfor %}

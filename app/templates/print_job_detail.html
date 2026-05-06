@@ -74,6 +74,19 @@
         </div>
 
         <div class="detail-row">
+            <span>Fortschritt</span>
+            <strong>
+                {{ checklist_done_count(job) }}/{{ checklist_total_count() }} erledigt
+                —
+                {{ checklist_progress(job) }} %
+            </strong>
+        </div>
+
+        <div class="progress-bar-wrap">
+            <div class="progress-bar {{ checklist_progress_class(job) }}" style="width: {{ checklist_progress(job) }}%;"></div>
+        </div>
+
+        <div class="detail-row">
             <span>Erstellt am</span>
             <strong>{{ job.created_at.strftime("%d.%m.%Y %H:%M") }}</strong>
         </div>
@@ -118,15 +131,17 @@
 <div class="page-card mt">
     <div class="section-header">
         <h2>Druckjob-Checkliste</h2>
-        <span class="muted small">
-            Zuletzt aktualisiert:
-            {% if checklist and checklist.updated_at %}
-                {{ checklist.updated_at.strftime("%d.%m.%Y %H:%M") }}
-            {% else %}
-                -
-            {% endif %}
+        <span class="progress-pill {{ checklist_progress_class(job) }}">
+            {{ checklist_progress(job) }} %
         </span>
     </div>
+
+    <p class="muted">
+        {{ checklist_done_count(job) }} von {{ checklist_total_count() }} Punkten erledigt.
+        {% if checklist and checklist.updated_at %}
+            Zuletzt aktualisiert: {{ checklist.updated_at.strftime("%d.%m.%Y %H:%M") }}
+        {% endif %}
+    </p>
 
     <form method="post" action="/jobs/{{ job.id }}/checklist">
         <div class="checklist-grid">
