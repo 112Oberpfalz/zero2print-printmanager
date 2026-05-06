@@ -559,6 +559,79 @@ select:focus {
     background: #16a34a;
 }
 
+.quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.quick-actions form {
+    margin: 0;
+}
+
+.quick-link {
+    display: inline-block;
+    background: #f3f4f6;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+    padding: 6px 9px;
+    border-radius: 7px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.quick-link:hover {
+    background: #e5e7eb;
+}
+
+.quick-btn {
+    border: none;
+    padding: 7px 10px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.quick-btn.primary {
+    background: #2563eb;
+    color: white;
+}
+
+.quick-btn.primary:hover {
+    background: #1d4ed8;
+}
+
+.quick-btn.success {
+    background: #16a34a;
+    color: white;
+}
+
+.quick-btn.success:hover {
+    background: #15803d;
+}
+
+.quick-btn.warning {
+    background: #f59e0b;
+    color: #111827;
+}
+
+.quick-btn.warning:hover {
+    background: #d97706;
+}
+
+.quick-btn.danger {
+    background: #dc2626;
+    color: white;
+}
+
+.quick-btn.danger:hover {
+    background: #b91c1c;
+}
+
 @media (max-width: 1100px) {
     .dashboard-grid,
     .today-grid {
@@ -619,5 +692,16 @@ select:focus {
 
     .checklist-grid {
         grid-template-columns: 1fr;
+    }
+
+    .quick-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .quick-link,
+    .quick-btn {
+        width: 100%;
+        text-align: center;
     }
 }

@@ -106,6 +106,21 @@ def checkbox_value(value):
     return value is not None
 
 
+def clean_redirect_url(value: str | None):
+    if not value:
+        return None
+
+    value = value.strip()
+
+    if not value.startswith("/"):
+        return None
+
+    if value.startswith("//"):
+        return None
+
+    return value
+
+
 @router.get("")
 def print_jobs_index(
     request: Request,
@@ -342,6 +357,7 @@ def print_job_update(
 def print_job_update_status(
     job_id: int,
     status: str = Form(...),
+    return_to: str = Form(""),
     db: Session = Depends(get_db)
 ):
     job = db.query(PrintJob).filter(PrintJob.id == job_id).first()
@@ -350,11 +366,26 @@ def print_job_update_status(
         return RedirectResponse(url="/jobs", status_code=303)
 
     clean_status = status.strip()
+
+    if clean_status not in JOB_STATUSES:
+        return RedirectResponse(url=f"/jobs/{job.id}", status_code=303)
+
     job.status = clean_status
 
     update_project_status_from_job(job.project, clean_status)
 
+    if clean_status == "Erledigt":
+        checklist = get_or_create_checklist(db, job)
+        if checklist:
+            checklist.print_finished_checked = True
+            checklist.updated_at = datetime.utcnow()
+
     db.commit()
+
+    redirect_url = clean_redirect_url(return_to)
+
+    if redirect_url:
+        return RedirectResponse(url=redirect_url, status_code=303)
 
     return RedirectResponse(
         url=f"/jobs/{job.id}",
@@ -365,6 +396,7 @@ def print_job_update_status(
 @router.post("/{job_id}/done")
 def print_job_mark_done(
     job_id: int,
+    return_to: str = Form(""),
     db: Session = Depends(get_db)
 ):
     job = db.query(PrintJob).filter(PrintJob.id == job_id).first()
@@ -379,6 +411,11 @@ def print_job_mark_done(
             checklist.updated_at = datetime.utcnow()
 
         db.commit()
+
+    redirect_url = clean_redirect_url(return_to)
+
+    if redirect_url:
+        return RedirectResponse(url=redirect_url, status_code=303)
 
     return RedirectResponse(
         url=f"/jobs/{job_id}",

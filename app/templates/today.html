@@ -102,7 +102,7 @@
                     <th>Projekt</th>
                     <th>Material</th>
                     <th>Fortschritt</th>
-                    <th></th>
+                    <th>Aktionen</th>
                 </tr>
             </thead>
             <tbody>
@@ -117,7 +117,24 @@
                             <div class="mini-progress-bar {{ checklist_progress_class(job) }}" style="width: {{ checklist_progress(job) }}%;"></div>
                         </div>
                     </td>
-                    <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
+                    <td>
+                        <div class="quick-actions">
+                            <a class="quick-link" href="/jobs/{{ job.id }}">Öffnen</a>
+                            <a class="quick-link" href="/jobs/{{ job.id }}/pdf" target="_blank">PDF</a>
+
+                            <form method="post" action="/jobs/{{ job.id }}/status">
+                                <input type="hidden" name="status" value="Druck fertig">
+                                <input type="hidden" name="return_to" value="/today">
+                                <button class="quick-btn success" type="submit">Druck fertig</button>
+                            </form>
+
+                            <form method="post" action="/jobs/{{ job.id }}/status">
+                                <input type="hidden" name="status" value="Fehler">
+                                <input type="hidden" name="return_to" value="/today">
+                                <button class="quick-btn danger" type="submit">Fehler</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -141,7 +158,7 @@
                     <th>Projekt</th>
                     <th>Datei</th>
                     <th>Fortschritt</th>
-                    <th></th>
+                    <th>Aktionen</th>
                 </tr>
             </thead>
             <tbody>
@@ -162,7 +179,24 @@
                             <div class="mini-progress-bar {{ checklist_progress_class(job) }}" style="width: {{ checklist_progress(job) }}%;"></div>
                         </div>
                     </td>
-                    <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
+                    <td>
+                        <div class="quick-actions">
+                            <a class="quick-link" href="/jobs/{{ job.id }}">Öffnen</a>
+                            <a class="quick-link" href="/jobs/{{ job.id }}/pdf" target="_blank">PDF</a>
+
+                            <form method="post" action="/jobs/{{ job.id }}/status">
+                                <input type="hidden" name="status" value="Druck läuft">
+                                <input type="hidden" name="return_to" value="/today">
+                                <button class="quick-btn primary" type="submit">Starten</button>
+                            </form>
+
+                            <form method="post" action="/jobs/{{ job.id }}/status">
+                                <input type="hidden" name="status" value="Fehler">
+                                <input type="hidden" name="return_to" value="/today">
+                                <button class="quick-btn danger" type="submit">Fehler</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -188,7 +222,7 @@
                     <th>Projekt</th>
                     <th>Material</th>
                     <th>Fortschritt</th>
-                    <th></th>
+                    <th>Aktionen</th>
                 </tr>
             </thead>
             <tbody>
@@ -203,7 +237,23 @@
                             <div class="mini-progress-bar {{ checklist_progress_class(job) }}" style="width: {{ checklist_progress(job) }}%;"></div>
                         </div>
                     </td>
-                    <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
+                    <td>
+                        <div class="quick-actions">
+                            <a class="quick-link" href="/jobs/{{ job.id }}">Öffnen</a>
+                            <a class="quick-link" href="/jobs/{{ job.id }}/pdf" target="_blank">PDF</a>
+
+                            <form method="post" action="/jobs/{{ job.id }}/done">
+                                <input type="hidden" name="return_to" value="/today">
+                                <button class="quick-btn success" type="submit">Erledigt</button>
+                            </form>
+
+                            <form method="post" action="/jobs/{{ job.id }}/status">
+                                <input type="hidden" name="status" value="Fehler">
+                                <input type="hidden" name="return_to" value="/today">
+                                <button class="quick-btn danger" type="submit">Fehler</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -213,42 +263,77 @@
         {% endif %}
     </div>
 
-    <div class="page-card error-card">
+    <div class="page-card">
         <div class="section-header">
-            <h2>Fehler / Problemjobs</h2>
-            <a class="link-btn" href="/jobs?status=Fehler">Alle anzeigen</a>
+            <h2>Druck fertig</h2>
+            <a class="link-btn" href="/jobs?status=Druck+fertig">Alle anzeigen</a>
         </div>
 
-        {% if error_jobs %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Job</th>
-                    <th>Projekt</th>
-                    <th>Fortschritt</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for job in error_jobs %}
-                <tr>
-                    <td><strong>DJ-{{ "%04d"|format(job.id) }}</strong></td>
-                    <td>{{ job.project.name }}</td>
-                    <td>
-                        <div class="mini-progress-text">{{ checklist_progress(job) }} %</div>
-                        <div class="mini-progress-wrap">
-                            <div class="mini-progress-bar {{ checklist_progress_class(job) }}" style="width: {{ checklist_progress(job) }}%;"></div>
-                        </div>
-                    </td>
-                    <td><a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p class="muted">Keine Fehlerjobs vorhanden.</p>
-        {% endif %}
+        {% set finished_waiting_jobs = [] %}
+        {% for job in ready_jobs %}
+        {% endfor %}
+
+        <p class="muted">
+            Druckjobs mit Status „Druck fertig“ findest du aktuell über die Druckjobliste.
+            Wenn du willst, bauen wir diesen Block im nächsten Schritt vollständig ein.
+        </p>
+
+        <a class="btn-secondary" href="/jobs?status=Druck+fertig">Druck fertige Jobs anzeigen</a>
     </div>
+</div>
+
+<div class="page-card mt error-card">
+    <div class="section-header">
+        <h2>Fehler / Problemjobs</h2>
+        <a class="link-btn" href="/jobs?status=Fehler">Alle anzeigen</a>
+    </div>
+
+    {% if error_jobs %}
+    <table>
+        <thead>
+            <tr>
+                <th>Job</th>
+                <th>Projekt</th>
+                <th>Fortschritt</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in error_jobs %}
+            <tr>
+                <td><strong>DJ-{{ "%04d"|format(job.id) }}</strong></td>
+                <td>{{ job.project.name }}</td>
+                <td>
+                    <div class="mini-progress-text">{{ checklist_progress(job) }} %</div>
+                    <div class="mini-progress-wrap">
+                        <div class="mini-progress-bar {{ checklist_progress_class(job) }}" style="width: {{ checklist_progress(job) }}%;"></div>
+                    </div>
+                </td>
+                <td>
+                    <div class="quick-actions">
+                        <a class="quick-link" href="/jobs/{{ job.id }}">Öffnen</a>
+                        <a class="quick-link" href="/jobs/{{ job.id }}/pdf" target="_blank">PDF</a>
+
+                        <form method="post" action="/jobs/{{ job.id }}/status">
+                            <input type="hidden" name="status" value="Bereit zum Druck">
+                            <input type="hidden" name="return_to" value="/today">
+                            <button class="quick-btn primary" type="submit">Wieder bereit</button>
+                        </form>
+
+                        <form method="post" action="/jobs/{{ job.id }}/status">
+                            <input type="hidden" name="status" value="Nacharbeit">
+                            <input type="hidden" name="return_to" value="/today">
+                            <button class="quick-btn warning" type="submit">Nacharbeit</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">Keine Fehlerjobs vorhanden.</p>
+    {% endif %}
 </div>
 
 <div class="page-card mt">
