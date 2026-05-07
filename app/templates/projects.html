@@ -46,7 +46,7 @@
                 <th>Status</th>
                 <th>Deadline</th>
                 <th>Erstellt</th>
-                <th></th>
+                <th>Aktionen</th>
             </tr>
         </thead>
         <tbody>
@@ -66,7 +66,19 @@
                 <td>{{ project.deadline or "-" }}</td>
                 <td>{{ project.created_at.strftime("%d.%m.%Y") }}</td>
                 <td>
-                    <a class="link-btn" href="/projects/{{ project.id }}">Öffnen</a>
+                    <div class="quick-actions">
+                        <a class="quick-link" href="/projects/{{ project.id }}">Öffnen</a>
+                        <a class="quick-link" href="/projects/{{ project.id }}/edit">Bearbeiten</a>
+
+                        <form method="post" action="/projects/{{ project.id }}/archive" onsubmit="return confirm('Projekt archivieren?');">
+                            <button class="quick-btn warning" type="submit">Archivieren</button>
+                        </form>
+
+                        <form method="post" action="/projects/{{ project.id }}/delete" onsubmit="return confirm('Projekt {{ project.name }} wirklich löschen? Dabei werden auch Druckjobs, Zeiten, Dateien, PDFs und QR-Codes gelöscht.');">
+                            <input type="hidden" name="return_to" value="/projects">
+                            <button class="quick-btn danger" type="submit">Löschen</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             {% endfor %}

@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Request, Depends, Form, Query
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -34,6 +36,43 @@ PROJECT_STATUSES = [
     "Fertig",
     "Archiviert",
 ]
+
+
+def remove_file_if_exists(path: str):
+    try:
+        if path and os.path.exists(path):
+            os.remove(path)
+    except OSError:
+        pass
+
+
+def cleanup_project_files(project: Project):
+    for file in project.files:
+        remove_file_if_exists(file.file_path)
+
+
+def cleanup_project_generated_files(project: Project):
+    for job in project.print_jobs:
+        pdf_path = os.path.join("data", "pdf", f"DJ-{job.id:04d}.pdf")
+        qr_path = os.path.join("data", "qr", f"job_{job.id:04d}.png")
+
+        remove_file_if_exists(pdf_path)
+        remove_file_if_exists(qr_path)
+
+
+def clean_redirect_url(value: str | None):
+    if not value:
+        return None
+
+    value = value.strip()
+
+    if not value.startswith("/"):
+        return None
+
+    if value.startswith("//"):
+        return None
+
+    return value
 
 
 @router.get("")
@@ -206,6 +245,31 @@ def project_archive(
         url=f"/projects/{project_id}",
         status_code=303
     )
+
+
+@router.post("/{project_id}/delete")
+def project_delete(
+    project_id: int,
+    return_to: str = Form("/projects"),
+    db: Session = Depends(get_db)
+):
+    project = db.query(Project).filter(Project.id == project_id).first()
+
+    if not project:
+        return RedirectResponse(url="/projects", status_code=303)
+
+    redirect_url = clean_redirect_url(return_to) or "/projects"
+
+    if redirect_url.startswith(f"/projects/{project_id}"):
+        redirect_url = "/projects"
+
+    cleanup_project_generated_files(project)
+    cleanup_project_files(project)
+
+    db.delete(project)
+    db.commit()
+
+    return RedirectResponse(url=redirect_url, status_code=303)
 
 
 @router.get("/{project_id}")
