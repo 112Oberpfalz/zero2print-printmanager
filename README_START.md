@@ -6,3 +6,5 @@ Doppelklick auf:
 
 ```text
 start_clean.bat
+
+test
