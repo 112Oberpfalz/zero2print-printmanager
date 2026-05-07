@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 from fastapi import APIRouter, Request, Depends, Form, Query
@@ -7,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from app.database import get_db
-from app.models import PrintJob, Project, ProjectFile, Customer, PrintJobChecklist
+from app.models import PrintJob, Project, ProjectFile, Customer, PrintJobChecklist, TimeEntry
 from app.services.pdf_service import generate_print_job_pdf
 from app.template_helpers import (
     status_class,
@@ -119,6 +120,22 @@ def clean_redirect_url(value: str | None):
         return None
 
     return value
+
+
+def remove_file_if_exists(path: str):
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+    except OSError:
+        pass
+
+
+def cleanup_generated_job_files(job_id: int):
+    pdf_path = os.path.join("data", "pdf", f"DJ-{job_id:04d}.pdf")
+    qr_path = os.path.join("data", "qr", f"job_{job_id:04d}.png")
+
+    remove_file_if_exists(pdf_path)
+    remove_file_if_exists(qr_path)
 
 
 @router.get("")
@@ -421,6 +438,39 @@ def print_job_mark_done(
         url=f"/jobs/{job_id}",
         status_code=303
     )
+
+
+@router.post("/{job_id}/delete")
+def print_job_delete(
+    job_id: int,
+    return_to: str = Form("/jobs"),
+    db: Session = Depends(get_db)
+):
+    job = db.query(PrintJob).filter(PrintJob.id == job_id).first()
+
+    if not job:
+        return RedirectResponse(url="/jobs", status_code=303)
+
+    redirect_url = clean_redirect_url(return_to) or "/jobs"
+
+    if redirect_url.startswith(f"/jobs/{job_id}"):
+        redirect_url = "/jobs"
+
+    related_time_entries = (
+        db.query(TimeEntry)
+        .filter(TimeEntry.print_job_id == job.id)
+        .all()
+    )
+
+    for entry in related_time_entries:
+        entry.print_job_id = None
+
+    db.delete(job)
+    db.commit()
+
+    cleanup_generated_job_files(job_id)
+
+    return RedirectResponse(url=redirect_url, status_code=303)
 
 
 @router.post("/{job_id}/checklist")

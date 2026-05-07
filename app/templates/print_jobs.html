@@ -50,7 +50,7 @@
                 <th>Status</th>
                 <th>Fortschritt</th>
                 <th>Erstellt</th>
-                <th></th>
+                <th>Aktionen</th>
             </tr>
         </thead>
         <tbody>
@@ -93,7 +93,16 @@
                 </td>
                 <td>{{ job.created_at.strftime("%d.%m.%Y") }}</td>
                 <td>
-                    <a class="link-btn" href="/jobs/{{ job.id }}">Öffnen</a>
+                    <div class="quick-actions">
+                        <a class="quick-link" href="/jobs/{{ job.id }}">Öffnen</a>
+                        <a class="quick-link" href="/jobs/{{ job.id }}/edit">Bearbeiten</a>
+                        <a class="quick-link" href="/jobs/{{ job.id }}/pdf" target="_blank">PDF</a>
+
+                        <form method="post" action="/jobs/{{ job.id }}/delete" onsubmit="return confirm('Druckjob DJ-{{ "%04d"|format(job.id) }} wirklich löschen? Zeiten bleiben erhalten, werden aber vom Druckjob getrennt.');">
+                            <input type="hidden" name="return_to" value="/jobs">
+                            <button class="quick-btn danger" type="submit">Löschen</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             {% endfor %}

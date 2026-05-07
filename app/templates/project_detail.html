@@ -12,17 +12,22 @@
         </p>
     </div>
 
-    <div class="header-actions">
-        <a class="btn-secondary" href="/projects">Alle Projekte</a>
-        <a class="btn-secondary" href="/projects/{{ project.id }}/edit">Bearbeiten</a>
-        <a class="btn-secondary" href="/time/new?project_id={{ project.id }}">Zeit erfassen</a>
+<div class="header-actions">
+    <a class="btn-secondary" href="/jobs">Alle Druckjobs</a>
+    <a class="btn-secondary" href="/projects/{{ job.project.id }}">Zum Projekt</a>
+    <a class="btn-secondary" href="/jobs/{{ job.id }}/edit">Bearbeiten</a>
+    <a class="btn-secondary" href="/time/new?project_id={{ job.project.id }}&job_id={{ job.id }}">Zeit erfassen</a>
 
-        <form method="post" action="/projects/{{ project.id }}/archive" onsubmit="return confirm('Projekt wirklich archivieren?');">
-            <button class="btn-secondary" type="submit">Archivieren</button>
-        </form>
+    <form method="post" action="/jobs/{{ job.id }}/done" onsubmit="return confirm('Druckjob als erledigt markieren?');">
+        <button class="btn-secondary" type="submit">Erledigt</button>
+    </form>
 
-        <a class="btn" href="/projects/{{ project.id }}/files/upload">+ Datei hochladen</a>
-    </div>
+    <a class="btn" href="/jobs/{{ job.id }}/pdf" target="_blank">PDF drucken</a>
+
+    <form method="post" action="/jobs/{{ job.id }}/delete" onsubmit="return confirm('Druckjob DJ-{{ "%04d"|format(job.id) }} wirklich löschen? Zeiten bleiben erhalten, werden aber vom Druckjob getrennt.');">
+        <input type="hidden" name="return_to" value="/jobs">
+        <button class="btn-danger" type="submit">Löschen</button>
+    </form>
 </div>
 
 <div class="detail-grid">
