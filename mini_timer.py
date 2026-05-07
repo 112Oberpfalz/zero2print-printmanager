@@ -15,7 +15,7 @@ class MiniTimerApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Zero2Print Mini-Timer")
-        self.root.geometry("420x420")
+        self.root.geometry("420x430")
         self.root.resizable(False, False)
 
         self.server_url = self.load_server_url()
@@ -40,7 +40,7 @@ class MiniTimerApp:
             with open(CONFIG_FILE, "r", encoding="utf-8") as file:
                 data = json.load(file)
 
-            server_url = data.get("server_url", DEFAULT_SERVER_URL).strip()
+            server_url = str(data.get("server_url", DEFAULT_SERVER_URL)).strip()
 
             if server_url.endswith("/"):
                 server_url = server_url[:-1]
@@ -51,6 +51,37 @@ class MiniTimerApp:
 
     def api_url(self, path):
         return f"{self.server_url}{path}"
+
+    def extract_list(self, data, possible_keys):
+        if isinstance(data, list):
+            return data
+
+        if isinstance(data, dict):
+            for key in possible_keys:
+                value = data.get(key)
+                if isinstance(value, list):
+                    return value
+
+        return []
+
+    def extract_active_timer(self, data):
+        if not data:
+            return None
+
+        if isinstance(data, dict):
+            if "active_timer" in data:
+                return data.get("active_timer")
+
+            if "active_entry" in data:
+                return data.get("active_entry")
+
+            if "entry" in data:
+                return data.get("entry")
+
+            if "id" in data:
+                return data
+
+        return None
 
     def build_ui(self):
         main = ttk.Frame(self.root, padding=16)
@@ -103,30 +134,57 @@ class MiniTimerApp:
             self.load_projects()
             self.load_categories()
             self.load_active_timer()
-        except requests.RequestException:
+        except requests.RequestException as error:
             messagebox.showerror(
                 "Verbindungsfehler",
-                f"Server nicht erreichbar:\n{self.server_url}"
+                f"Server nicht erreichbar:\n{self.server_url}\n\n{error}"
+            )
+        except Exception as error:
+            messagebox.showerror(
+                "Fehler",
+                f"Mini-Timer konnte Daten nicht laden:\n{error}"
             )
 
     def load_projects(self):
         response = requests.get(self.api_url("/time/api/projects"), timeout=5)
         response.raise_for_status()
 
-        self.projects = response.json()
+        data = response.json()
+        self.projects = self.extract_list(data, ["projects", "items", "data", "results"])
 
-        values = [project["name"] for project in self.projects]
+        values = []
+
+        for project in self.projects:
+            if isinstance(project, dict):
+                values.append(project.get("name", f"Projekt {project.get('id', '')}"))
+
         self.project_box["values"] = values
 
-        if values and not self.project_box.get():
-            self.project_box.current(0)
+        if values:
+            if not self.project_box.get():
+                self.project_box.current(0)
             self.on_project_selected()
+        else:
+            self.selected_project_id = None
+            self.project_box.set("")
+            self.job_box["values"] = []
+            self.job_box.set("")
 
     def load_categories(self):
         response = requests.get(self.api_url("/time/api/categories"), timeout=5)
         response.raise_for_status()
 
-        self.categories = response.json()
+        data = response.json()
+
+        if isinstance(data, list):
+            self.categories = data
+        elif isinstance(data, dict):
+            self.categories = self.extract_list(data, ["categories", "items", "data", "results"])
+        else:
+            self.categories = []
+
+        self.categories = [str(category) for category in self.categories]
+
         self.category_box["values"] = self.categories
 
         if self.categories and not self.category_box.get():
@@ -140,9 +198,15 @@ class MiniTimerApp:
             return
 
         project = self.projects[index]
-        self.selected_project_id = project["id"]
 
-        self.load_jobs_for_project(self.selected_project_id)
+        if not isinstance(project, dict):
+            self.selected_project_id = None
+            return
+
+        self.selected_project_id = project.get("id")
+
+        if self.selected_project_id:
+            self.load_jobs_for_project(self.selected_project_id)
 
     def load_jobs_for_project(self, project_id):
         response = requests.get(
@@ -151,12 +215,16 @@ class MiniTimerApp:
         )
         response.raise_for_status()
 
-        self.jobs = response.json()
+        data = response.json()
+        self.jobs = self.extract_list(data, ["jobs", "items", "data", "results"])
 
         values = ["Kein Druckjob"]
 
         for job in self.jobs:
-            values.append(f'DJ-{job["id"]:04d} - {job["status"]}')
+            if isinstance(job, dict):
+                job_id = job.get("id", 0)
+                status = job.get("status", "-")
+                values.append(f"DJ-{int(job_id):04d} - {status}")
 
         self.job_box["values"] = values
         self.job_box.current(0)
@@ -172,18 +240,19 @@ class MiniTimerApp:
         job_index = index - 1
 
         if job_index < len(self.jobs):
-            self.selected_job_id = self.jobs[job_index]["id"]
+            job = self.jobs[job_index]
+
+            if isinstance(job, dict):
+                self.selected_job_id = job.get("id")
+            else:
+                self.selected_job_id = None
 
     def load_active_timer(self):
         response = requests.get(self.api_url("/time/api/active"), timeout=5)
         response.raise_for_status()
 
         data = response.json()
-
-        if data:
-            self.active_entry = data
-        else:
-            self.active_entry = None
+        self.active_entry = self.extract_active_timer(data)
 
         self.update_active_display()
 
@@ -195,7 +264,12 @@ class MiniTimerApp:
             self.stop_button.config(state="disabled")
             return
 
-        project_name = self.active_entry.get("project_name", "-")
+        project_name = (
+            self.active_entry.get("project_name")
+            or self.active_entry.get("project")
+            or "-"
+        )
+
         category = self.active_entry.get("category", "-")
 
         self.status_label.config(text=f"Läuft: {project_name} / {category}")
@@ -210,12 +284,16 @@ class MiniTimerApp:
         if not self.active_entry:
             return ""
 
-        start_time_raw = self.active_entry.get("start_time")
+        start_time_raw = (
+            self.active_entry.get("start_time")
+            or self.active_entry.get("started_at")
+        )
 
         if not start_time_raw:
             return ""
 
         try:
+            start_time_raw = str(start_time_raw).replace("Z", "")
             start_time = datetime.fromisoformat(start_time_raw)
             diff = datetime.now() - start_time
 
@@ -261,6 +339,7 @@ class MiniTimerApp:
                 timeout=5
             )
             response.raise_for_status()
+
             self.note_entry.delete(0, tk.END)
             self.load_active_timer()
         except requests.RequestException as error:
@@ -273,6 +352,7 @@ class MiniTimerApp:
                 timeout=5
             )
             response.raise_for_status()
+
             self.load_active_timer()
         except requests.RequestException as error:
             messagebox.showerror("Fehler", f"Timer konnte nicht gestoppt werden:\n{error}")
@@ -280,7 +360,7 @@ class MiniTimerApp:
 
 def main():
     root = tk.Tk()
-    app = MiniTimerApp(root)
+    MiniTimerApp(root)
     root.mainloop()
 
 
