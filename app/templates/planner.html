@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Druckplanung</h1>
+        <p class="muted">Empfohlene Reihenfolge für offene Druckjobs.</p>
+    </div>
+
+    <a class="btn" href="/jobs/new">+ Druckjob anlegen</a>
+</div>
+
+<div class="cards">
+    <div class="card">
+        <h2>Offene Jobs</h2>
+        <p>{{ summary.open_jobs }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Geplante Druckzeit</h2>
+        <p>{{ summary.total_label }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Nachtjobs</h2>
+        <p>{{ summary.night_jobs }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Zeit fehlt</h2>
+        <p>{{ summary.missing_times }}</p>
+    </div>
+</div>
+
+{% if next_job %}
+<div class="card">
+    <h2>Nächster empfohlener Druck</h2>
+    <p>
+        <strong>DJ-{{ "%04d"|format(next_job.job.id) }}</strong>
+        —
+        {{ next_job.job.project.customer.name }}
+        /
+        {{ next_job.job.project.name }}
+    </p>
+    <p class="muted">
+        {{ next_job.duration_label }}
+        —
+        {{ next_job.recommendation }}
+    </p>
+    <a class="btn" href="/jobs/{{ next_job.job.id }}">Druckjob öffnen</a>
+</div>
+{% endif %}
+
+{% if planned_jobs %}
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Reihenfolge</th>
+                <th>Job</th>
+                <th>Kunde</th>
+                <th>Projekt</th>
+                <th>Drucker</th>
+                <th>Material</th>
+                <th>Farbe</th>
+                <th>Dauer</th>
+                <th>Deadline</th>
+                <th>Empfehlung</th>
+                <th>Aktion</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in planned_jobs %}
+            <tr>
+                <td><strong>#{{ loop.index }}</strong></td>
+                <td>
+                    <strong>DJ-{{ "%04d"|format(item.job.id) }}</strong>
+                </td>
+                <td>{{ item.job.project.customer.name }}</td>
+                <td>{{ item.job.project.name }}</td>
+                <td>{{ item.job.printer_name or "-" }}</td>
+                <td>{{ item.job.material or "-" }}</td>
+                <td>{{ item.job.color or "-" }}</td>
+                <td>{{ item.duration_label }}</td>
+                <td>{{ item.job.project.deadline or "-" }}</td>
+                <td>{{ item.recommendation }}</td>
+                <td>
+                    <a class="quick-link" href="/jobs/{{ item.job.id }}">Öffnen</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <h2>Keine offenen Druckjobs</h2>
+    <p>Alle Druckjobs sind erledigt oder es wurden noch keine Jobs angelegt.</p>
+    <a class="btn" href="/jobs/new">Druckjob anlegen</a>
+</div>
+{% endif %}
+{% endblock %}

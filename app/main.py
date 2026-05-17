@@ -10,7 +10,7 @@ from app.database import Base, engine, get_db
 import app.models
 
 from app.models import Customer, Project, PrintJob, TimeEntry
-from app.routes import customers, projects, print_jobs, time_entries, files, backup, today
+from app.routes import customers, projects, print_jobs, time_entries, files, backup, today, planner
 from app.template_helpers import status_class
 
 Base.metadata.create_all(bind=engine)
@@ -29,7 +29,7 @@ app.include_router(time_entries.router)
 app.include_router(files.router)
 app.include_router(backup.router)
 app.include_router(today.router)
-
+app.include_router(planner.router)
 
 @app.get("/")
 def home():
