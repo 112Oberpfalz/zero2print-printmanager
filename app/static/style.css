@@ -201,6 +201,17 @@ select:focus {
     margin-top: 24px;
 }
 
+.survey-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.survey-grid label {
+    font-weight: normal;
+    margin-bottom: 4px;
+}
+
 .btn-secondary {
     display: inline-block;
     background: #e5e7eb;

@@ -37,6 +37,38 @@
         </div>
 
         <div class="form-group">
+            <label>Filament-Fragebogen</label>
+            <div class="survey-grid">
+                <div>
+                    <label for="filament_use_case">Einsatz</label>
+                    <select id="filament_use_case" name="filament_use_case">
+                        <option value="standard" {% if job.filament_use_case == "standard" or not job.filament_use_case %}selected{% endif %}>Prototyp / Standardteil</option>
+                        <option value="mechanical" {% if job.filament_use_case == "mechanical" %}selected{% endif %}>Mechanisch belastet</option>
+                        <option value="flexible" {% if job.filament_use_case == "flexible" %}selected{% endif %}>Flexibel / Gummiartig</option>
+                        <option value="outdoor" {% if job.filament_use_case == "outdoor" %}selected{% endif %}>Außen / UV-Wetter</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filament_temperature">Temperatur</label>
+                    <select id="filament_temperature" name="filament_temperature">
+                        <option value="normal" {% if job.filament_temperature == "normal" or not job.filament_temperature %}selected{% endif %}>Normale Umgebung</option>
+                        <option value="hot" {% if job.filament_temperature == "hot" %}selected{% endif %}>Erhöhte Temperatur</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filament_finish">Oberfläche</label>
+                    <select id="filament_finish" name="filament_finish">
+                        <option value="standard" {% if job.filament_finish == "standard" or not job.filament_finish %}selected{% endif %}>Standard</option>
+                        <option value="smooth" {% if job.filament_finish == "smooth" %}selected{% endif %}>Glatt / Detail</option>
+                    </select>
+                </div>
+            </div>
+            <p class="muted small">
+                Wähle Einsatz, Temperatur und Oberfläche aus. Die empfohlene Filamentart wird automatisch gesetzt.
+            </p>
+        </div>
+
+        <div class="form-group">
             <label for="printer_name">Drucker</label>
             <select id="printer_name" name="printer_name">
                 <option value="">Bitte wählen</option>
@@ -70,6 +102,14 @@
                 </option>
                 {% endif %}
             </select>
+        </div>
+
+        <div class="form-group">
+            <label>Empfohlene Filamentart</label>
+            <div class="muted small">
+                Material: <strong id="filament_recommendation">{{ job.material or 'PLA+' }}</strong><br>
+                <span id="filament_recommendation_explanation">Wähle Einsatz, Temperatur und Oberfläche aus, um eine Empfehlung zu sehen.</span>
+            </div>
         </div>
 
         <div class="form-group">
@@ -109,4 +149,55 @@
         </div>
     </form>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const useCase = document.getElementById("filament_use_case");
+    const temp = document.getElementById("filament_temperature");
+    const finish = document.getElementById("filament_finish");
+    const materialSelect = document.getElementById("material");
+    const recommendation = document.getElementById("filament_recommendation");
+    const explanation = document.getElementById("filament_recommendation_explanation");
+
+    function recommendFilament(setMaterial = false) {
+        const useValue = useCase.value;
+        const tempValue = temp.value;
+        let recommended = "PLA+";
+        let text = "PLA+ ist in vielen Fällen eine gute Standardwahl.";
+
+        if (useValue === "flexible") {
+            recommended = "TPU";
+            text = "TPU ist ideal für flexible oder dämpfende Teile.";
+        } else if (useValue === "outdoor") {
+            recommended = "ASA";
+            text = "ASA eignet sich für Außenanwendungen mit UV- und Witterungsbeständigkeit.";
+        } else if (useValue === "mechanical") {
+            recommended = "PETG";
+            text = "PETG ist stabiler als PLA und eignet sich für belastete Teile.";
+        } else if (tempValue === "hot") {
+            recommended = "PETG";
+            text = "PETG bietet besseren Hitzewiderstand als PLA.";
+        }
+
+        if (useValue === "mechanical" && tempValue === "hot") {
+            recommended = "PETG";
+            text = "PETG ist empfehlenswert für belastete Teile mit höherer Temperatur.";
+        }
+
+        if (!Array.from(materialSelect.options).some(opt => opt.value === recommended)) {
+            const option = document.createElement("option");
+            option.value = recommended;
+            option.textContent = recommended;
+            materialSelect.appendChild(option);
+        }
+
+        if (setMaterial || materialSelect.value === "" || materialSelect.value === "PLA+") {
+            materialSelect.value = recommended;
+        }
+        recommendation.textContent = recommended;
+        explanation.textContent = text;
+    }
+
+    [useCase, temp, finish].forEach(el => el.addEventListener("change", () => recommendFilament(true)));
+});
+</script>
 {% endblock %}

@@ -45,6 +45,9 @@ PRINTER_PRESETS = [
 
 MATERIAL_PRESETS = [
     "PLA+",
+    "PETG",
+    "TPU",
+    "ASA",
 ]
 
 
@@ -235,6 +238,9 @@ def print_job_create(
     printer_name: str = Form(""),
     material: str = Form("PLA+"),
     color: str = Form(""),
+    filament_use_case: str = Form("standard"),
+    filament_temperature: str = Form("normal"),
+    filament_finish: str = Form("standard"),
     planned_print_time: str = Form(""),
     planned_weight_grams: str = Form(""),
     status: str = Form("Bereit zum Druck"),
@@ -259,6 +265,9 @@ def print_job_create(
         printer_name=printer_name.strip(),
         material=material.strip() or "PLA+",
         color=color.strip(),
+        filament_use_case=filament_use_case.strip() or "standard",
+        filament_temperature=filament_temperature.strip() or "normal",
+        filament_finish=filament_finish.strip() or "standard",
         planned_print_time=planned_print_time.strip(),
         planned_weight_grams=parsed_weight,
         status=clean_status,
@@ -327,6 +336,9 @@ def print_job_update(
     printer_name: str = Form(""),
     material: str = Form("PLA+"),
     color: str = Form(""),
+    filament_use_case: str = Form("standard"),
+    filament_temperature: str = Form("normal"),
+    filament_finish: str = Form("standard"),
     planned_print_time: str = Form(""),
     planned_weight_grams: str = Form(""),
     status: str = Form("Bereit zum Druck"),
@@ -355,6 +367,9 @@ def print_job_update(
     job.printer_name = printer_name.strip()
     job.material = material.strip() or "PLA+"
     job.color = color.strip()
+    job.filament_use_case = filament_use_case.strip() or "standard"
+    job.filament_temperature = filament_temperature.strip() or "normal"
+    job.filament_finish = filament_finish.strip() or "standard"
     job.planned_print_time = planned_print_time.strip()
     job.planned_weight_grams = parsed_weight
     job.status = clean_status

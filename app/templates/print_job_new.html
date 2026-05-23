@@ -47,6 +47,38 @@
         </div>
 
         <div class="form-group">
+            <label>Filament-Fragebogen</label>
+            <div class="survey-grid">
+                <div>
+                    <label for="filament_use_case">Einsatz</label>
+                    <select id="filament_use_case" name="filament_use_case">
+                        <option value="standard">Prototyp / Standardteil</option>
+                        <option value="mechanical">Mechanisch belastet</option>
+                        <option value="flexible">Flexibel / Gummiartig</option>
+                        <option value="outdoor">Außen / UV-Wetter</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filament_temperature">Temperatur</label>
+                    <select id="filament_temperature" name="filament_temperature">
+                        <option value="normal">Normale Umgebung</option>
+                        <option value="hot">Erhöhte Temperatur</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filament_finish">Oberfläche</label>
+                    <select id="filament_finish" name="filament_finish">
+                        <option value="standard">Standard</option>
+                        <option value="smooth">Glatt / Detail</option>
+                    </select>
+                </div>
+            </div>
+            <p class="muted small">
+                Wähle Einsatz, Temperatur und Oberfläche aus. Die empfohlene Filamentart wird automatisch gesetzt.
+            </p>
+        </div>
+
+        <div class="form-group">
             <label for="printer_name">Drucker</label>
             <select id="printer_name" name="printer_name">
                 <option value="">Bitte wählen</option>
@@ -68,6 +100,14 @@
             <p class="muted small">
                 Aktuell ist PLA+ als Standardmaterial hinterlegt.
             </p>
+        </div>
+
+        <div class="form-group">
+            <label>Empfohlene Filamentart</label>
+            <div class="muted small">
+                Material: <strong id="filament_recommendation">PLA+</strong><br>
+                <span id="filament_recommendation_explanation">PLA+ ist in vielen Fällen eine gute Standardwahl.</span>
+            </div>
         </div>
 
         <div class="form-group">
@@ -111,6 +151,58 @@
         </div>
     </form>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const useCase = document.getElementById("filament_use_case");
+    const temp = document.getElementById("filament_temperature");
+    const finish = document.getElementById("filament_finish");
+    const materialSelect = document.getElementById("material");
+    const recommendation = document.getElementById("filament_recommendation");
+    const explanation = document.getElementById("filament_recommendation_explanation");
+
+    function recommendFilament(setMaterial = false) {
+        const useValue = useCase.value;
+        const tempValue = temp.value;
+        let recommended = "PLA+";
+        let text = "PLA+ ist in vielen Fällen eine gute Standardwahl.";
+
+        if (useValue === "flexible") {
+            recommended = "TPU";
+            text = "TPU ist ideal für flexible oder dämpfende Teile.";
+        } else if (useValue === "outdoor") {
+            recommended = "ASA";
+            text = "ASA eignet sich für Außenanwendungen mit UV- und Witterungsbeständigkeit.";
+        } else if (useValue === "mechanical") {
+            recommended = "PETG";
+            text = "PETG ist stabiler als PLA und eignet sich für belastete Teile.";
+        } else if (tempValue === "hot") {
+            recommended = "PETG";
+            text = "PETG bietet besseren Hitzewiderstand als PLA.";
+        }
+
+        if (useValue === "mechanical" && tempValue === "hot") {
+            recommended = "PETG";
+            text = "PETG ist empfehlenswert für belastete Teile mit höherer Temperatur.";
+        }
+
+        if (!Array.from(materialSelect.options).some(opt => opt.value === recommended)) {
+            const option = document.createElement("option");
+            option.value = recommended;
+            option.textContent = recommended;
+            materialSelect.appendChild(option);
+        }
+
+        if (setMaterial || materialSelect.value === "" || materialSelect.value === "PLA+") {
+            materialSelect.value = recommended;
+        }
+        recommendation.textContent = recommended;
+        explanation.textContent = text;
+    }
+
+    [useCase, temp, finish].forEach(el => el.addEventListener("change", () => recommendFilament(true)));
+    recommendFilament();
+});
+</script>
 {% else %}
 <div class="empty-state">
     <h2>Du brauchst zuerst ein Projekt</h2>

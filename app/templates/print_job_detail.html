@@ -106,6 +106,43 @@
         </div>
 
         <div class="detail-row">
+            <span>Einsatz</span>
+            <strong>
+                {% if job.filament_use_case == "mechanical" %}
+                    Mechanisch belastet
+                {% elif job.filament_use_case == "flexible" %}
+                    Flexibel / Gummiartig
+                {% elif job.filament_use_case == "outdoor" %}
+                    Außen / UV-Wetter
+                {% else %}
+                    Prototyp / Standardteil
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Temperatur</span>
+            <strong>
+                {% if job.filament_temperature == "hot" %}
+                    Erhöhte Temperatur
+                {% else %}
+                    Normale Umgebung
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="detail-row">
+            <span>Oberfläche</span>
+            <strong>
+                {% if job.filament_finish == "smooth" %}
+                    Glatt / Detail
+                {% else %}
+                    Standard
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="detail-row">
             <span>Farbe</span>
             <strong>{{ job.color or "-" }}</strong>
         </div>
