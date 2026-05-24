@@ -8,12 +8,14 @@ from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
 import app.models
+from app.migrations import run_migrations
 
 from app.models import Customer, Project, PrintJob, TimeEntry
 from app.routes import customers, projects, print_jobs, time_entries, files, backup, today, planner
 from app.template_helpers import status_class
 
 Base.metadata.create_all(bind=engine)
+run_migrations()
 
 app = FastAPI(title="Zero2Print PrintManager")
 

@@ -167,6 +167,41 @@ def generate_print_job_pdf(job, fallback_base_url: str | None = None) -> str:
 
     y -= 2 * mm
 
+    # Filament-Fragebogen
+    use_case = getattr(job, "filament_use_case", None)
+    temperature = getattr(job, "filament_temperature", None)
+    finish = getattr(job, "filament_finish", None)
+
+    if use_case or temperature or finish:
+        pdf.setFont("Helvetica-Bold", 11)
+        pdf.drawString(margin_x, y, "Filament-Anforderungen")
+        y -= 7 * mm
+
+        # Map values to display text
+        use_case_map = {
+            "standard": "Prototyp / Standardteil",
+            "mechanical": "Mechanisch belastet",
+            "flexible": "Flexibel / Gummiartig",
+            "outdoor": "Außen / UV-Wetter",
+        }
+        temp_map = {
+            "normal": "Normale Umgebung",
+            "hot": "Erhöhte Temperatur",
+        }
+        finish_map = {
+            "standard": "Standard",
+            "smooth": "Glatt / Detail",
+        }
+
+        if use_case:
+            y = draw_label_value(pdf, "Einsatz:", use_case_map.get(use_case, use_case), margin_x, y)
+        if temperature:
+            y = draw_label_value(pdf, "Temperatur:", temp_map.get(temperature, temperature), margin_x, y)
+        if finish:
+            y = draw_label_value(pdf, "Oberfläche:", finish_map.get(finish, finish), margin_x, y)
+
+        y -= 2 * mm
+
     # Checkliste
     pdf.setFont("Helvetica-Bold", 11)
     pdf.drawString(margin_x, y, "Checkliste")
